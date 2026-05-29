@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
@@ -46,11 +47,7 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
       body: Consumer<ApprovalsController>(
         builder: (context, controller, _) {
           if (controller.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            );
+            return _ShimmerList();
           }
           if (controller.errorMessage != null) {
             return AppErrorWidget(
@@ -69,6 +66,28 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _ShimmerList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      itemCount: 3,
+      itemBuilder: (_, __) => Shimmer.fromColors(
+        baseColor: const Color(0xFFE5E7EB),
+        highlightColor: const Color(0xFFF9FAFB),
+        child: Container(
+          height: 180,
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       ),
     );
   }
@@ -169,17 +188,57 @@ class _QuoteList extends StatelessWidget {
         icon: Icons.assignment_outlined,
       );
     }
-    return ListView.separated(
+
+    final itemCount = controller.filteredQuotes.length + 1;
+
+    return ListView.builder(
+      controller: controller.scrollController,
       padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: controller.filteredQuotes.length,
-      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+      itemCount: itemCount,
       itemBuilder: (context, index) {
+        if (index == controller.filteredQuotes.length) {
+          if (controller.isLoadingMore) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Color(0xFFD32F2F),
+                  ),
+                ),
+              ),
+            );
+          }
+          if (!controller.hasMoreData) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Text(
+                  'All approvals loaded',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF9CA3AF),
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+
         final quote = controller.filteredQuotes[index];
-        return ApprovalCard(
-          quote: quote,
-          onTap: () => Navigator.of(context).pushNamed(
-            AppRouter.quoteDetail,
-            arguments: quote,
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          child: ApprovalCard(
+            quote: quote,
+            onTap: () => Navigator.of(context).pushNamed(
+              AppRouter.quoteDetail,
+              arguments: quote,
+            ),
           ),
         );
       },
