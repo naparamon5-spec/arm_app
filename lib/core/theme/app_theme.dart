@@ -7,6 +7,7 @@ class AppTheme {
 
   static ThemeData get light => ThemeData(
         useMaterial3: false,
+        fontFamily: 'HankenGrotesk',
         colorScheme: const ColorScheme.light(
           primary: AppColors.primary,
           secondary: AppColors.surface,

@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_spacing.dart';
-import '../../../core/constants/app_text_styles.dart';
-
 
 class RecentApprovalTile extends StatelessWidget {
   final String quoteNumber;
@@ -22,12 +18,9 @@ class RecentApprovalTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -36,49 +29,61 @@ class RecentApprovalTile extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
+                color: const Color(0xFFFFF0F0),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
-                Icons.description_outlined,
-                color: AppColors.primary,
+                Icons.insert_drive_file_outlined,
                 size: 20,
+                color: Color(0xFFD32F2F),
               ),
             ),
-            const SizedBox(width: AppSpacing.md),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(quoteNumber, style: AppTextStyles.tileQuoteNumber),
-                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    quoteNumber,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
                   Text(
                     description,
-                    style: AppTextStyles.tileDescription,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF6B7280),
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   timeAgo,
-                  style: AppTextStyles.tileTimeAgo.copyWith(
-                    color: const Color(0xFF1A1A2E),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF1A1A2E),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: 4),
                 const Icon(
                   Icons.chevron_right,
-                  color: AppColors.textMuted,
-                  size: 18,
+                  size: 16,
+                  color: Color(0xFF9CA3AF),
                 ),
               ],
             ),
