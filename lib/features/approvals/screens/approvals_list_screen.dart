@@ -40,10 +40,7 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7F8),
-      appBar: AppBarWidget(
-        showLogo: false,
-        automaticallyImplyLeading: false,
-      ),
+      appBar: const AppBarWidget(),
       body: Consumer<ApprovalsController>(
         builder: (context, controller, _) {
           if (controller.isLoading) {
@@ -129,7 +126,7 @@ class _SearchBar extends StatelessWidget {
                 )
               : null,
           filled: true,
-          fillColor: const Color(0xFFF4F7F8),
+          fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(color: Color(0xFFE5E7EB)),

@@ -169,10 +169,12 @@ class _LoginFormState extends State<LoginForm> {
               SizedBox(
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: controller.isLoading ? null : () => _submit(controller),
+                  onPressed:
+                      controller.isLoading ? null : () => _submit(controller),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
-                    disabledBackgroundColor: const Color(0xFFD32F2F).withOpacity(0.6),
+                    disabledBackgroundColor:
+                        const Color(0xFFD32F2F).withOpacity(0.6),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
@@ -189,7 +191,7 @@ class _LoginFormState extends State<LoginForm> {
                           ),
                         )
                       : const Text(
-                          '→  LOGIN',
+                          ' LOGIN ',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,

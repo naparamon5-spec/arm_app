@@ -58,15 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             isLoading: controller.isLoading,
             child: Scaffold(
               backgroundColor: const Color(0xFFF4F7F8),
-              appBar: AppBarWidget(
-                showLogo: true,
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.menu, color: AppColors.textLight),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
+              appBar: const AppBarWidget(),
               body: controller.errorMessage != null
                   ? AppErrorWidget(
                       message: controller.errorMessage,

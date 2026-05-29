@@ -34,10 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7F8),
-      appBar: AppBarWidget(
-        showLogo: false,
-        automaticallyImplyLeading: false,
-      ),
+      appBar: const AppBarWidget(),
       body: Consumer<DashboardController>(
         builder: (context, controller, _) {
           if (controller.isLoading) {

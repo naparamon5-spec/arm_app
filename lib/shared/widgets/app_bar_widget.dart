@@ -1,68 +1,58 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/constants/app_spacing.dart';
-import '../../core/constants/app_strings.dart';
-import '../../core/constants/app_text_styles.dart';
 
 class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
   final List<Widget>? actions;
-  final Widget? leading;
-  final bool showLogo;
   final bool automaticallyImplyLeading;
 
   const AppBarWidget({
     super.key,
-    this.title = '',
     this.actions,
-    this.leading,
-    this.showLogo = false,
-    this.automaticallyImplyLeading = true,
+    this.automaticallyImplyLeading = false,
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(66);
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.surface,
+      backgroundColor: const Color(0xFF1C2333),
       elevation: 0,
-      automaticallyImplyLeading: automaticallyImplyLeading,
-      leading: leading ??
-          (showLogo
-              ? Padding(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: _ArdentLogoSmall(),
-                )
-              : null),
-      title: Text(
-        title.isNotEmpty ? title : AppStrings.appBarHeading,
-        style: AppTextStyles.appBarTitle,
+      toolbarHeight: 64,
+      titleSpacing: 12,
+      automaticallyImplyLeading: false,
+      leading: null,
+      title: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: 'ARDENT ',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+                letterSpacing: 0.5,
+              ),
+            ),
+            TextSpan(
+              text: 'RESOURCE MANAGEMENT',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFD32F2F),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
       ),
       actions: actions,
-      iconTheme: const IconThemeData(color: AppColors.textLight),
-    );
-  }
-}
-
-class _ArdentLogoSmall extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceLight,
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      alignment: Alignment.center,
-      child: const Text(
-        'A',
-        style: TextStyle(
-          color: AppColors.primary,
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
+      iconTheme: const IconThemeData(color: Colors.white),
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(2),
+        child: SizedBox(
+          height: 2,
+          child: ColoredBox(color: Color(0xFFD32F2F)),
         ),
       ),
     );

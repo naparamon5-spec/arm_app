@@ -25,6 +25,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/ARM.png
+    - assets/ArdentLogo.png
   fonts:
     - family: HankenGrotesk
       fonts:
