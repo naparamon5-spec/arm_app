@@ -54,9 +54,12 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _emailController,
                 validator: Validators.email,
                 keyboardType: TextInputType.emailAddress,
+                fillColor: Colors.white,
+                borderColor: const Color(0xFFE5E7EB),
+                labelColor: const Color(0xFF1A1A2E),
                 prefixIcon: const Icon(
                   Icons.mail_outline,
-                  color: AppColors.textMuted,
+                  color: Color(0xFF9CA3AF),
                   size: 20,
                 ),
               ),
@@ -67,9 +70,12 @@ class _LoginFormState extends State<LoginForm> {
                 controller: _passwordController,
                 validator: Validators.password,
                 obscureText: _obscurePassword,
+                fillColor: Colors.white,
+                borderColor: const Color(0xFFE5E7EB),
+                labelColor: const Color(0xFF1A1A2E),
                 prefixIcon: const Icon(
                   Icons.lock_outline,
-                  color: AppColors.textMuted,
+                  color: Color(0xFF9CA3AF),
                   size: 20,
                 ),
                 suffixIcon: IconButton(
@@ -77,7 +83,7 @@ class _LoginFormState extends State<LoginForm> {
                     _obscurePassword
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: AppColors.textMuted,
+                    color: const Color(0xFF9CA3AF),
                     size: 20,
                   ),
                   onPressed: () =>
@@ -161,7 +167,7 @@ class _RememberDeviceRow extends StatelessWidget {
         Text(
           AppStrings.rememberDevice,
           style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+            color: const Color(0xFF1A1A2E),
           ),
         ),
       ],
@@ -198,7 +204,7 @@ class _LoginButton extends StatelessWidget {
                       AlwaysStoppedAnimation<Color>(AppColors.textLight),
                 ),
               )
-            : const Text(AppStrings.secureLogin, style: AppTextStyles.buttonLabel),
+            : const Text('LOGIN', style: AppTextStyles.buttonLabel),
       ),
     );
   }
@@ -237,7 +243,7 @@ class _SignUpPrompt extends StatelessWidget {
           TextSpan(
             text: AppStrings.newToArdent,
             style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+              color: const Color(0xFF1A1A2E),
             ),
           ),
           WidgetSpan(

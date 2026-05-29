@@ -5,17 +5,18 @@ class AppStrings {
   static const String appName = 'Ardent Resource Management';
   static const String appBarHeading = 'ARDENT RESOURCE MANAGEMENT';
   static const String appVersion = 'V2.4.0-ENTERPRISE';
-  static const String appVersionStable = 'Version 4.3.0-stable | ARDENT NETWORKS INC.';
+  static const String appVersionStable =
+      'Version 4.3.0-stable | ARDENT NETWORKS INC.';
   static const String companyName = 'ARDENT NETWORKS';
   static const String companyNameSuffix = 'NETWORKS';
   static const String enterpriseGateway = 'Enterprise Resource Gateway';
 
   // Login
-  static const String corporateEmail = 'CORPORATE EMAIL';
+  static const String corporateEmail = 'EMAIL';
   static const String password = 'PASSWORD';
   static const String forgotPassword = 'Forgot Password?';
-  static const String rememberDevice = 'Remember this device for 30 days';
-  static const String secureLogin = 'SECURE LOGIN →';
+  static const String rememberDevice = 'Remember Me';
+  static const String secureLogin = 'LOGIN';
   static const String newToArdent = 'New to Ardent? ';
   static const String contactItAdmin = 'Contact IT Admin';
   static const String emailHint = 'you@ardentnetworks.com.ph';
@@ -23,13 +24,14 @@ class AppStrings {
 
   // Dashboard
   static const String welcomePrefix = 'Welcome, ';
-  static const String dashboardSubtitle = "Review and approve your team's quotes.";
+  static const String dashboardSubtitle =
+      "Review and approve your team's quotes.";
   static const String forApproval = 'FOR APPROVAL';
   static const String quotesLabel = 'Quotes';
   static const String recentPendingApprovals = 'Recent Pending Approvals';
 
   // Approvals
-  static const String pendingApprovals = 'PENDING APPROVALS';
+  static const String pendingApprovals = 'APPROVALS';
   static const String searchHint = 'Search quotes, customers, or salesmen...';
   static const String filter = 'Filter';
 
@@ -78,11 +80,11 @@ class AppStrings {
   static const String itemNumber = 'ITEM NUMBER';
   static const String itemSite = 'SITE';
   static const String itemQty = 'QUANTITY';
-  static const String itemListPrice = 'LIST PRICE';
+  static const String itemListGlp = 'UNIT GLP';
   static const String itemUnitPrice = 'UNIT PRICE';
-  static const String itemExtCost = 'EXTENDED COST';
-  static const String itemRebate = 'REBATE';
-  static const String itemSpu = 'SPU';
+  static const String itemExtPrice = 'EXTENDED PRICE';
+  static const String itemFreight = 'FREIGHT';
+  static const String itemVat = 'VAT';
   static const String itemCostUsd = 'COST (USD)';
   static const String itemCostPhp = 'COST (PHP)';
 
@@ -93,14 +95,16 @@ class AppStrings {
   // Actions
   static const String approve = 'APPROVE';
   static const String approveTitle = 'Approve Quote';
-  static const String approveMessage = 'Are you sure you want to approve this quote? This action cannot be undone.';
+  static const String approveMessage =
+      'Are you sure you want to approve this quote? This action cannot be undone.';
   static const String confirm = 'Confirm';
   static const String cancel = 'Cancel';
 
   // Profile
   static const String accountPreferences = 'ACCOUNT PREFERENCES';
   static const String changePassword = 'Change Password';
-  static const String changePasswordSubtitle = 'Update your security credentials';
+  static const String changePasswordSubtitle =
+      'Update your security credentials';
   static const String signOut = 'SIGN OUT OF SYSTEM';
 
   // Nav
@@ -116,14 +120,17 @@ class AppStrings {
   // Errors
   static const String errorGeneric = 'Something went wrong. Please try again.';
   static const String errorNoData = 'No data available.';
-  static const String loginFailed = 'Login failed. Please check your credentials.';
-  static const String loginInvalidCredentials = 'Invalid email or password. Please try again.';
+  static const String loginFailed =
+      'Login failed. Please check your credentials.';
+  static const String loginInvalidCredentials =
+      'Invalid email or password. Please try again.';
   static const String mockEmail = 'mark.almueda@ardentnetworks.com.ph';
   static const String mockPassword = 'password';
 
   // Empty states
   static const String emptyApprovals = 'No pending approvals';
-  static const String emptyApprovalsSubtitle = 'All caught up! Check back later.';
+  static const String emptyApprovalsSubtitle =
+      'All caught up! Check back later.';
   static const String emptyFiles = 'No files attached';
   static const String emptyItems = 'No items found';
 }

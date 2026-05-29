@@ -38,15 +38,10 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF4F7F8),
       appBar: AppBarWidget(
-        showLogo: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.textLight),
-            onPressed: () {},
-          ),
-        ],
+        showLogo: false,
+        automaticallyImplyLeading: false,
       ),
       body: Consumer<ApprovalsController>(
         builder: (context, controller, _) {
@@ -88,7 +83,7 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.cardBackground,
+      color: const Color(0xFFF4F7F8),
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: TextField(
         controller: controller,
@@ -106,8 +101,8 @@ class _SearchBar extends StatelessWidget {
           ),
           suffixIcon: controller.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.clear, size: 18,
-                      color: AppColors.textMuted),
+                  icon: const Icon(Icons.clear,
+                      size: 18, color: AppColors.textMuted),
                   onPressed: () {
                     controller.clear();
                     onChanged('');
@@ -145,14 +140,16 @@ class _SectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.background,
+      color: const Color(0xFFF4F7F8),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.lg,
         vertical: AppSpacing.md,
       ),
       child: Row(
         children: [
-          Text(AppStrings.pendingApprovals, style: AppTextStyles.labelBold),
+          Text(AppStrings.pendingApprovals,
+              style: AppTextStyles.labelBold
+                  .copyWith(color: AppColors.textPrimary)),
         ],
       ),
     );

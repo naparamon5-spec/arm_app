@@ -15,6 +15,9 @@ class AppTextField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final ValueChanged<String>? onChanged;
+  final Color? fillColor;
+  final Color? borderColor;
+  final Color? labelColor;
 
   const AppTextField({
     super.key,
@@ -29,6 +32,9 @@ class AppTextField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.onChanged,
+    this.fillColor,
+    this.borderColor,
+    this.labelColor,
   });
 
   @override
@@ -39,7 +45,7 @@ class AppTextField extends StatelessWidget {
         Text(
           label,
           style: AppTextStyles.labelBold.copyWith(
-            color: AppColors.textSecondary,
+            color: labelColor ?? AppColors.textSecondary,
             letterSpacing: 0.8,
           ),
         ),
@@ -62,14 +68,14 @@ class AppTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppColors.inputFill,
+            fillColor: fillColor ?? AppColors.inputFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-              borderSide: const BorderSide(color: AppColors.inputBorder),
+              borderSide: BorderSide(color: borderColor ?? AppColors.inputBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-              borderSide: const BorderSide(color: AppColors.inputBorder),
+              borderSide: BorderSide(color: borderColor ?? AppColors.inputBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.inputRadius),

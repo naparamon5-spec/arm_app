@@ -33,15 +33,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF4F7F8),
       appBar: AppBarWidget(
-        showLogo: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: AppColors.textLight),
-            onPressed: () {},
-          ),
-        ],
+        showLogo: false,
+        automaticallyImplyLeading: false,
       ),
       body: Consumer<DashboardController>(
         builder: (context, controller, _) {
@@ -101,12 +96,14 @@ class _Body extends StatelessWidget {
             AppStrings.dashboardSubtitle,
             style: AppTextStyles.dashboardSubtitleText,
           ),
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xxxl),
           ApprovalSummaryCard(
             count: controller.pendingCount,
             onTap: () => context.read<MainTabController>().switchTo(1),
           ),
           const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.xxxl),
           const Text(
             AppStrings.recentPendingApprovals,
             style: AppTextStyles.sectionHeader,
@@ -116,8 +113,7 @@ class _Body extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: controller.recentQuotes.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(height: AppSpacing.sm),
+            separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
             itemBuilder: (context, index) {
               final quote = controller.recentQuotes[index];
               return RecentApprovalTile(

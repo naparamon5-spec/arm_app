@@ -14,17 +14,22 @@ class AppBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.cardBackground,
-        border: Border(
-          top: BorderSide(color: AppColors.divider, width: 1),
-        ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD32F2F).withOpacity(0.3),
+            offset: const Offset(0, -2),
+            blurRadius: 6,
+            spreadRadius: 0,
+          ),
+        ],
       ),
       child: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
-        backgroundColor: AppColors.cardBackground,
+        backgroundColor: Colors.white,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textMuted,
         type: BottomNavigationBarType.fixed,

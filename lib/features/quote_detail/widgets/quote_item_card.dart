@@ -31,9 +31,12 @@ class _QuoteItemCardState extends State<QuoteItemCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Header(item: item, expanded: _expanded, onToggle: () {
-            setState(() => _expanded = !_expanded);
-          }),
+          _Header(
+              item: item,
+              expanded: _expanded,
+              onToggle: () {
+                setState(() => _expanded = !_expanded);
+              }),
           if (_expanded) ...[
             const Divider(height: 1, color: AppColors.divider),
             _FieldGrid(item: item),
@@ -138,11 +141,11 @@ class _FieldGrid extends StatelessWidget {
       (AppStrings.itemNumber, item.itemNumber),
       (AppStrings.itemSite, item.site),
       (AppStrings.itemQty, '${item.quantity}'),
-      (AppStrings.itemListPrice, CurrencyFormatter.usd(item.listPrice)),
+      (AppStrings.itemListGlp, CurrencyFormatter.usd(item.listGlp)),
       (AppStrings.itemUnitPrice, CurrencyFormatter.usd(item.unitPrice)),
-      (AppStrings.itemExtCost, CurrencyFormatter.usd(item.extendedCost)),
-      (AppStrings.itemRebate, CurrencyFormatter.usd(item.rebate)),
-      (AppStrings.itemSpu, '${item.spu}%'),
+      (AppStrings.itemExtPrice, CurrencyFormatter.usd(item.extendedPrice)),
+      (AppStrings.itemFreight, CurrencyFormatter.usd(item.freight)),
+      (AppStrings.itemVat, CurrencyFormatter.usd(item.vat)),
       (AppStrings.itemCostUsd, CurrencyFormatter.usd(item.costUsd)),
       (AppStrings.itemCostPhp, CurrencyFormatter.php(item.costPhp)),
     ];

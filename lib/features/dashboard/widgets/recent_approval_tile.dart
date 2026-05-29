@@ -29,9 +29,9 @@ class RecentApprovalTile extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-          border: Border.all(color: AppColors.divider),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
         ),
         child: Row(
           children: [
@@ -68,7 +68,12 @@ class RecentApprovalTile extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(timeAgo, style: AppTextStyles.tileTimeAgo),
+                Text(
+                  timeAgo,
+                  style: AppTextStyles.tileTimeAgo.copyWith(
+                    color: const Color(0xFF1A1A2E),
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.xs),
                 const Icon(
                   Icons.chevron_right,
