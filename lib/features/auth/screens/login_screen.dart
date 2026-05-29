@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_spacing.dart';
 import '../../../shared/navigation/app_router.dart';
-import '../widgets/branded_header.dart';
 import '../widgets/login_form.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -13,20 +11,44 @@ class LoginScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.xxxl,
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: AppSpacing.xxl),
-                  const BrandedHeader(),
-                  const SizedBox(height: 40),
-                  _FormCard(context),
-                ],
-              ),
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 60),
+                Center(
+                  child: Image.asset(
+                    'assets/ARM.png',
+                    width: 280,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Center(
+                  child: Text(
+                    'Smart Approvals for Smart Teams',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF6B7280),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 60),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Builder(
+                    builder: (context) => LoginForm(
+                      onSuccess: () =>
+                          Navigator.of(context).pushReplacementNamed(
+                        AppRouter.main,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 80),
+              ],
             ),
           ),
           const Align(
@@ -48,28 +70,4 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _FormCard(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF4F7F8),
-        borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0D000000),
-            blurRadius: 16,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: LoginForm(
-        onSuccess: () => Navigator.of(context).pushReplacementNamed(
-          AppRouter.main,
-        ),
-      ),
-    );
-  }
 }
-
-
