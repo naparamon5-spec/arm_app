@@ -15,7 +15,7 @@ class ProfileInfoCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.xxl),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
         border: Border.all(color: AppColors.divider),
       ),

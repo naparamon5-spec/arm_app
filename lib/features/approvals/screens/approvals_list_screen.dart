@@ -129,18 +129,18 @@ class _SearchBar extends StatelessWidget {
                 )
               : null,
           filled: true,
-          fillColor: AppColors.inputFill,
+          fillColor: const Color(0xFFF4F7F8),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            borderSide: const BorderSide(color: AppColors.inputBorder),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            borderSide: const BorderSide(color: AppColors.inputBorder),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.inputRadius),
-            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
           ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,

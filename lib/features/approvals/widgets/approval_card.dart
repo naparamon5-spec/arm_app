@@ -87,10 +87,14 @@ class ApprovalCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.person_outline,
-                    size: 16,
-                    color: Color(0xFF9CA3AF),
+                  const CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Color(0xFFE5E7EB),
+                    child: Icon(
+                      Icons.person,
+                      size: 16,
+                      color: Color(0xFF6B7280),
+                    ),
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -143,7 +147,7 @@ class ApprovalCard extends StatelessWidget {
                       ),
                       Expanded(
                         child: Container(
-                          color: const Color(0xFFFFF5F5),
+                          color: const Color(0xFFE8EAF6),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
@@ -154,7 +158,7 @@ class ApprovalCard extends StatelessWidget {
                               fontSize: 12,
                               fontWeight: FontWeight.w400,
                               fontStyle: FontStyle.italic,
-                              color: Color(0xFF4B5563),
+                              color: Color(0xFF6B7280),
                             ),
                           ),
                         ),

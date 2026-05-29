@@ -91,7 +91,7 @@ class _Body extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
           const Text(
             AppStrings.dashboardSubtitle,
             style: AppTextStyles.dashboardSubtitleText,
@@ -101,7 +101,6 @@ class _Body extends StatelessWidget {
             count: controller.pendingCount,
             onTap: () => context.read<MainTabController>().switchTo(1),
           ),
-          const SizedBox(height: AppSpacing.xxl),
           const SizedBox(height: AppSpacing.xxxl),
           const SizedBox(height: AppSpacing.xxxl),
           const Text(

@@ -57,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           return LoadingOverlay(
             isLoading: controller.isLoading,
             child: Scaffold(
-              backgroundColor: AppColors.background,
+              backgroundColor: const Color(0xFFF4F7F8),
               appBar: AppBarWidget(
                 showLogo: true,
                 actions: [
@@ -110,7 +110,7 @@ class _Body extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(AppSpacing.cardRadius),
               border: Border.all(color: AppColors.divider),
             ),
