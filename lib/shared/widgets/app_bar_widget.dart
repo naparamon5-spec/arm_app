@@ -22,7 +22,9 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
       titleSpacing: 12,
       automaticallyImplyLeading: false,
       leading: null,
-      title: RichText(
+      title: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: RichText(
         text: TextSpan(
           children: [
             TextSpan(
@@ -45,6 +47,7 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
+      ),
       ),
       actions: actions,
       iconTheme: const IconThemeData(color: Colors.white),

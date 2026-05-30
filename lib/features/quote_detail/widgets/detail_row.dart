@@ -26,18 +26,20 @@ class DetailRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.metricLabel.copyWith(
-            color: AppColors.textMuted,
-            letterSpacing: 0.4,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF94A3B8),
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
           value,
-          style: AppTextStyles.bodyRegular.copyWith(
-            fontWeight: FontWeight.w500,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
             fontStyle: italic ? FontStyle.italic : FontStyle.normal,
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? const Color(0xFF0F172A),
           ),
         ),
       ],

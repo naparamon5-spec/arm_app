@@ -23,7 +23,7 @@ class IncidentalRow extends StatelessWidget {
         vertical: AppSpacing.md,
       ),
       decoration: const BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         border: Border(
           bottom: BorderSide(color: AppColors.divider),
         ),

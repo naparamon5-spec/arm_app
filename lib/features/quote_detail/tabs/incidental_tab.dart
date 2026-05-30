@@ -21,16 +21,20 @@ class IncidentalTab extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SectionHeader(),
-          _ColumnHeaders(),
-          ...quote.incidentals.map(
-            (i) => IncidentalRow(incidental: i, forex: quote.forex),
-          ),
-        ],
+    return ColoredBox(
+      color: const Color(0xFFF4F7F8),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 12),
+            _SectionHeader(),
+            _ColumnHeaders(),
+            ...quote.incidentals.map(
+              (i) => IncidentalRow(incidental: i, forex: quote.forex),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -41,14 +45,15 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: AppColors.iconButtonBg,
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.metricPadding,
-      ),
+      color: const Color(0xFFF4F7F8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Text(
         AppStrings.sectionIncidentalDetails,
-        style: AppTextStyles.incidentalSectionHeader,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Color(0xFF94A3B8),
+        ),
       ),
     );
   }
@@ -58,12 +63,9 @@ class _ColumnHeaders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: const BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         border: Border(
           bottom: BorderSide(color: AppColors.divider),
         ),
@@ -73,11 +75,19 @@ class _ColumnHeaders extends StatelessWidget {
         children: [
           Text(
             AppStrings.incidentalTypeDesc,
-            style: AppTextStyles.metricCellLabel,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF94A3B8),
+            ),
           ),
           Text(
             AppStrings.incidentalAmount,
-            style: AppTextStyles.metricCellLabel,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF94A3B8),
+            ),
           ),
         ],
       ),

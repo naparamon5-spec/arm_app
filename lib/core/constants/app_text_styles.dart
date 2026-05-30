@@ -43,7 +43,7 @@ class AppTextStyles {
   );
 
   static const TextStyle metricValue = TextStyle(
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
   );
@@ -90,19 +90,19 @@ class AppTextStyles {
   static const TextStyle quoteHeaderDate = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: AppColors.textSecondary,
   );
 
   static const TextStyle metricCellLabel = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: FontWeight.w600,
-    color: AppColors.textMuted,
+    color: AppColors.textSecondary,
   );
 
   static const TextStyle metricCellSub = TextStyle(
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.textSubValue,
+    color: AppColors.textSecondary,
   );
 
   // Incidental tab styles

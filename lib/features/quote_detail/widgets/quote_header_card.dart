@@ -19,8 +19,7 @@ class QuoteHeaderCard extends StatelessWidget {
       color: AppColors.cardBackground,
       child: Column(
         children: [
-          _NavRow(),
-          _QuoteNumberRow(quote: quote),
+          _NavHeader(quote: quote),
           const Divider(height: 1, thickness: 1, color: AppColors.divider),
           _RouteRow(quote: quote),
           _MetricsCard(quote: quote),
@@ -31,51 +30,49 @@ class QuoteHeaderCard extends StatelessWidget {
   }
 }
 
-// ── ← back │ "QUOTE APPROVAL" centered │ balanced spacer
-class _NavRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            size: 20,
-            color: AppColors.textSecondary,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        Expanded(
-          child: Center(
-            child: Text(
-              AppStrings.quoteApproval,
-              style: AppTextStyles.quoteHeaderLabel,
-            ),
-          ),
-        ),
-        const SizedBox(width: 48),
-      ],
-    );
-  }
-}
-
-// ── quote number centered
-class _QuoteNumberRow extends StatelessWidget {
+// ── ← back │ "QUOTE APPROVAL" + quote number stacked centered │ spacer
+class _NavHeader extends StatelessWidget {
   final QuoteModel quote;
-  const _QuoteNumberRow({required this.quote});
+  const _NavHeader({required this.quote});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Center(
-        child: Text(quote.quoteNumber, style: AppTextStyles.quoteHeaderNumber),
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              size: 20,
+              color: AppColors.textSecondary,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppStrings.quoteApproval,
+                    style: AppTextStyles.quoteHeaderLabel,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(quote.quoteNumber, style: AppTextStyles.quoteHeaderNumber),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 48),
+        ],
       ),
     );
   }
 }
 
-// ── ● red dot + route text (red) | date (grey) — plain white row
+// ── pill tag (dot + destination) | date outside pill
 class _RouteRow extends StatelessWidget {
   final QuoteModel quote;
   const _RouteRow({required this.quote});
@@ -89,17 +86,32 @@ class _RouteRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.circle, size: 8, color: AppColors.primary),
-          const SizedBox(width: AppSpacing.xs),
-          Expanded(
-            child: Text(
-              quote.destination,
-              style: AppTextStyles.quoteHeaderRoute,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0F0),
+              border: Border.all(color: const Color(0xFFFFCDD2), width: 1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
+                const SizedBox(width: 4),
+                Text(
+                  quote.destination,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFD32F2F),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const Spacer(),
           Text(
             DateFormatter.display(quote.quoteDate),
             style: AppTextStyles.quoteHeaderDate,
@@ -210,9 +222,9 @@ class _MetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.metricPadding),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: child,
     );

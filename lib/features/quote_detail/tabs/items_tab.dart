@@ -21,26 +21,29 @@ class ItemsTab extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _ItemsHeader(count: quote.items.length),
-          const SizedBox(height: AppSpacing.md),
-          ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: quote.items.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) => QuoteItemCard(
-              item: quote.items[index],
-              index: index,
+    return ColoredBox(
+      color: const Color(0xFFF4F7F8),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ItemsHeader(count: quote.items.length),
+            const SizedBox(height: AppSpacing.md),
+            ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: quote.items.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) => QuoteItemCard(
+                item: quote.items[index],
+                index: index,
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
       ),
     );
   }

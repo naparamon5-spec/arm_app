@@ -14,7 +14,9 @@ class DetailsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return ColoredBox(
+      color: const Color(0xFFF4F7F8),
+      child: SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         children: [
@@ -89,6 +91,7 @@ class DetailsTab extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
         ],
       ),
+    ),
     );
   }
 }

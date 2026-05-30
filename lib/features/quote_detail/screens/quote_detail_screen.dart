@@ -82,25 +82,60 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
             child: Scaffold(
               backgroundColor: AppColors.background,
               appBar: AppBar(
-                backgroundColor: AppColors.surface,
+                backgroundColor: const Color(0xFF1C2333),
                 automaticallyImplyLeading: false,
                 elevation: 0,
-                title: const Text(
-                  AppStrings.appBarHeading,
-                  style: AppTextStyles.appBarTitle,
+                toolbarHeight: 64,
+                title: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'ARDENT ',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'RESOURCE MANAGEMENT',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFD32F2F),
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 centerTitle: false,
                 actions: [
                   Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.lg),
+                    padding: const EdgeInsets.only(right: 16),
                     child: Center(
                       child: Text(
-                        AppStrings.approvalsLabel,
-                        style: AppTextStyles.appBarTitle,
+                        'APPROVAL',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ],
+                bottom: const PreferredSize(
+                  preferredSize: Size.fromHeight(2),
+                  child: SizedBox(
+                    height: 2,
+                    child: ColoredBox(color: Color(0xFFD32F2F)),
+                  ),
+                ),
               ),
               body: Column(
                 children: [
@@ -140,23 +175,94 @@ class _TabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.cardBackground,
+      color: Colors.white,
       child: TabBar(
         controller: controller,
-        labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textSecondary,
-        indicatorColor: AppColors.primary,
+        labelColor: const Color(0xFFD32F2F),
+        unselectedLabelColor: const Color(0xFF6B7280),
+        indicatorColor: const Color(0xFFD32F2F),
         indicatorWeight: 2.5,
-        labelStyle: AppTextStyles.bodySmall.copyWith(
-          fontWeight: FontWeight.w600,
-          fontSize: 13,
-        ),
-        unselectedLabelStyle: AppTextStyles.bodySmall.copyWith(fontSize: 13),
         tabs: [
-          const Tab(text: AppStrings.tabDetails),
-          Tab(text: '${AppStrings.tabItems} ${quote.items.length}'),
-          const Tab(text: AppStrings.tabIncidental),
-          Tab(text: '${AppStrings.tabFiles} ${quote.attachments.length}'),
+          Tab(
+            child: RichText(
+              text: const TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Details',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Tab(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Items ',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  TextSpan(
+                    text: '${quote.items.length}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Tab(
+            child: RichText(
+              text: const TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Incidental',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Tab(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  const TextSpan(
+                    text: 'Files ',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  TextSpan(
+                    text: '${quote.attachments.length}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF9CA3AF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

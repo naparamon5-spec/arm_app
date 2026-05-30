@@ -21,26 +21,29 @@ class FilesTab extends StatelessWidget {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _FilesHeader(count: quote.attachments.length),
-          const SizedBox(height: AppSpacing.md),
-          ListView.separated(
-            physics: const NeverScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: quote.attachments.length,
-            separatorBuilder: (_, __) =>
-                const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) => FileAttachmentTile(
-              attachment: quote.attachments[index],
-              onTap: () {},
+    return ColoredBox(
+      color: const Color(0xFFF4F7F8),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _FilesHeader(count: quote.attachments.length),
+            const SizedBox(height: AppSpacing.md),
+            ListView.separated(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: quote.attachments.length,
+              separatorBuilder: (_, __) =>
+                  const SizedBox(height: AppSpacing.sm),
+              itemBuilder: (context, index) => FileAttachmentTile(
+                attachment: quote.attachments[index],
+                onTap: () {},
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
       ),
     );
   }
