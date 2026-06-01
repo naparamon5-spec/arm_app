@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/validators.dart';
 import '../controllers/auth_controller.dart';
 
@@ -15,7 +15,7 @@ class LoginForm extends StatefulWidget {
 
 class _LoginFormState extends State<LoginForm> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: AppStrings.mockEmail);
+  final _userIdController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = true;
@@ -29,15 +29,20 @@ class _LoginFormState extends State<LoginForm> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _userIdController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  String? _userIdValidator(String? value) {
+    if (value == null || value.trim().isEmpty) return 'User ID is required';
+    return null;
   }
 
   void _submit(AuthController controller) {
     if (!_formKey.currentState!.validate()) return;
     controller.login(
-      email: _emailController.text.trim(),
+      userId: _userIdController.text.trim(),
       password: _passwordController.text,
       onSuccess: widget.onSuccess,
     );
@@ -71,9 +76,9 @@ class _LoginFormState extends State<LoginForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // EMAIL
+              // USER ID
               const Text(
-                'EMAIL',
+                'USER ID',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -82,15 +87,24 @@ class _LoginFormState extends State<LoginForm> {
               ),
               const SizedBox(height: 8),
               TextFormField(
-                controller: _emailController,
-                validator: Validators.email,
-                keyboardType: TextInputType.emailAddress,
+                controller: _userIdController,
+                validator: _userIdValidator,
+                keyboardType: TextInputType.text,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  TextInputFormatter.withFunction(
+                    (oldValue, newValue) => newValue.copyWith(
+                      text: newValue.text.toUpperCase(),
+                      selection: newValue.selection,
+                    ),
+                  ),
+                ],
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF1A1A2E),
                 ),
-                decoration: _fieldDecoration(),
+                decoration: _fieldDecoration(hint: 'Enter your User ID'),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
               const SizedBox(height: 24),

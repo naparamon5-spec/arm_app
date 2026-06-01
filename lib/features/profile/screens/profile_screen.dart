@@ -150,7 +150,7 @@ class _ProfileInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Technical Support Specialist',
+            'Technical Support Engineer',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -168,7 +168,7 @@ class _ProfileInfoCard extends StatelessWidget {
               Icon(Icons.email_outlined, size: 16, color: Color(0xFF9CA3AF)),
               SizedBox(width: 6),
               Text(
-                'nathan.reyes@ardent.com.ph',
+                'cedrick.almueda@ardentnetworks.com.ph',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,

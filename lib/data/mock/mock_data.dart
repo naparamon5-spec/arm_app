@@ -9,9 +9,9 @@ class MockData {
 
   static const UserModel currentUser = UserModel(
     id: '001',
-    fullName: 'Nathaniel S. Reyes',
-    role: 'Regional Operations Manager',
-    email: 'nathan.reyes@ardentl.com.ph',
+    fullName: 'Cedrick M. Almueda',
+    role: 'Technical Support Engineer',
+    email: 'cedrick.almueda@ardentnetworks.com.ph',
   );
 
   static final List<QuoteModel> pendingQuotes = [

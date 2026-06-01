@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_strings.dart';
 
 class AuthController extends ChangeNotifier {
   bool _isLoading = false;
@@ -16,23 +15,26 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> login({
-    required String email,
+    required String userId,
     required String password,
     required VoidCallback onSuccess,
   }) async {
+    const validUserId = 'CEDRICK-A';
+    const validPassword = 'Password123.';
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       await Future.delayed(const Duration(seconds: 1));
-      if (email == AppStrings.mockEmail && password == AppStrings.mockPassword) {
+      if (userId == validUserId && password == validPassword) {
         onSuccess();
       } else {
-        _errorMessage = AppStrings.loginInvalidCredentials;
+        _errorMessage = 'Invalid User ID or password. Please try again.';
       }
     } catch (_) {
-      _errorMessage = AppStrings.loginFailed;
+      _errorMessage = 'Login failed. Please check your credentials.';
     } finally {
       _isLoading = false;
       notifyListeners();

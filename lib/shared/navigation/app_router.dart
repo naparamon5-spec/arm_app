@@ -9,6 +9,7 @@ class AppRouter {
 
   static const String login = '/';
   static const String main = '/main';
+  static const String dashboard = '/dashboard';
   static const String quoteDetail = '/quote-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -16,6 +17,7 @@ class AppRouter {
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case main:
+      case dashboard:
         return MaterialPageRoute(builder: (_) => const MainScreen());
       case quoteDetail:
         final quote = settings.arguments as QuoteModel;
