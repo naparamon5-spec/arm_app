@@ -11,6 +11,7 @@ class AppRouter {
   static const String main = '/main';
   static const String dashboard = '/dashboard';
   static const String quoteDetail = '/quote-detail';
+  static const String changePassword = '/change-password';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {

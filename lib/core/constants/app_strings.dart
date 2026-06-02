@@ -14,7 +14,6 @@ class AppStrings {
   // Login
   static const String corporateEmail = 'EMAIL';
   static const String password = 'PASSWORD';
-  static const String forgotPassword = 'Forgot Password?';
   static const String rememberDevice = 'Remember Me';
   static const String secureLogin = 'LOGIN';
   static const String newToArdent = 'New to Ardent? ';

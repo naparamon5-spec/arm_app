@@ -216,20 +216,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
               const SizedBox(height: 24),
-              // FORGOT PASSWORD
-              GestureDetector(
-                onTap: () {},
-                child: const Text(
-                  'FORGOT PASSWORD',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
-                    letterSpacing: 1.2,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+           
             ],
           ),
         );

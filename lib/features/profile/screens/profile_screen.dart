@@ -5,6 +5,7 @@ import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_overlay.dart';
 import '../controllers/profile_controller.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -202,7 +203,14 @@ class _ProfileInfoCard extends StatelessWidget {
 class _ChangePasswordTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ChangePasswordScreen(),
+        ),
+      ),
+      child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -251,6 +259,7 @@ class _ChangePasswordTile extends StatelessWidget {
           const Icon(Icons.chevron_right, size: 18, color: Color(0xFF9CA3AF)),
         ],
       ),
+    ),
     );
   }
 }
