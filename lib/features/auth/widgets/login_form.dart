@@ -104,7 +104,7 @@ class _LoginFormState extends State<LoginForm> {
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF1A1A2E),
                 ),
-                decoration: _fieldDecoration(hint: 'Enter your User ID'),
+                decoration: _fieldDecoration(hint: 'ENTER YOUR USER ID'),
                 autovalidateMode: AutovalidateMode.onUserInteraction,
               ),
               const SizedBox(height: 24),
@@ -216,7 +216,6 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
               const SizedBox(height: 24),
-           
             ],
           ),
         );
