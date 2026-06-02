@@ -59,8 +59,14 @@ class QuoteApprovalsApi {
         ApiPaths.quoteApprovals,
         queryParameters: filters.toQuery(),
       );
+      // ignore: avoid_print
+      print('[QuoteApi] list query: ${filters.toQuery()}');
+      // ignore: avoid_print
+      print('[QuoteApi] list raw: ${response.data}');
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
+      // ignore: avoid_print
+      print('[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve approvals');
     }
   }
@@ -70,9 +76,13 @@ class QuoteApprovalsApi {
       final response = await _client.get<Map<String, dynamic>>(
         ApiPaths.quoteApprovalsRecent,
       );
+      // ignore: avoid_print
+      print('[QuoteApi] recent raw: ${response.data}');
       final data = response.data?['data'];
       return _asRowList(data);
     } on DioException catch (e) {
+      // ignore: avoid_print
+      print('[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve recent approvals');
     }
   }
@@ -84,8 +94,12 @@ class QuoteApprovalsApi {
       final response = await _client.get<Map<String, dynamic>>(
         ApiPaths.quoteApproval(_encoded(quoteNumber)),
       );
+      // ignore: avoid_print
+      print('[QuoteApi] getQuote raw: ${response.data}');
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
+      // ignore: avoid_print
+      print('[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
       _client.throwFromDio(e, 'Failed to retrieve quote');
     }
   }

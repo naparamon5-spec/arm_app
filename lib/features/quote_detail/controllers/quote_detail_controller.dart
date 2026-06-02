@@ -18,10 +18,11 @@ class QuoteDetailController extends ChangeNotifier {
   void loadQuote(QuoteModel summary) {
     _quote = summary;
     notifyListeners();
-    _loadFullQuote(summary.quoteNumber);
+    _loadFullQuote(summary);
   }
 
-  Future<void> _loadFullQuote(String quoteNumber) async {
+  Future<void> _loadFullQuote(QuoteModel summary) async {
+    final quoteNumber = summary.quoteNumber;
     if (quoteNumber.isEmpty) return;
 
     _isLoading = true;
@@ -29,7 +30,10 @@ class QuoteDetailController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _quote = await _quoteRepo.getQuoteFull(quoteNumber);
+      final full = await _quoteRepo.getQuoteFull(quoteNumber);
+      // The detail header returns codes only (no names) and omits financials,
+      // so merge in the list row's complete data as a fallback.
+      _quote = full.mergedWith(summary);
     } on ApiException catch (e) {
       _errorMessage = e.message;
     } catch (_) {

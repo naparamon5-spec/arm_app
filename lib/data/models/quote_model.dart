@@ -12,7 +12,10 @@ class QuoteModel {
   final String endUser;
   final String customerPO;
   final String salesmanName;
+  /// BDM (Business Development Manager) name — detail "BDM" field.
   final String bdName;
+  /// Business unit group (e.g. "AM", "PDM") — list card "BU GROUP" field.
+  final String buGroup;
   final String poNumber;
   final DateTime poDate;
   final DateTime quoteDate;
@@ -45,6 +48,7 @@ class QuoteModel {
     required this.customerPO,
     required this.salesmanName,
     required this.bdName,
+    this.buGroup = '',
     required this.poNumber,
     required this.poDate,
     required this.quoteDate,
@@ -70,4 +74,65 @@ class QuoteModel {
 
   bool get requiresRemarksOnApprove =>
       checking.toUpperCase().contains('NEGATIVE GP');
+
+  /// Safely extracts a String from a value that may be a nested Map
+  /// (e.g. the API returns `customer` as `{CUSTOMER_NAME: "Foo"}`).
+  static String parseString(dynamic value) {
+    if (value == null) return '';
+    if (value is String) return value;
+    if (value is Map) {
+      // salesman object
+      return value['FULL_NAME']?.toString()
+          ?? value['full_name']?.toString()
+          // customer object
+          ?? value['CUSTOMER_NAME']?.toString()
+          ?? value['customer_name']?.toString()
+          ?? value['name']?.toString()
+          ?? '';
+    }
+    return value.toString();
+  }
+  /// Merges this detailed quote (from quotation_header) with the [summary] row
+  /// from the "for approval" list (vw_QuoteForApproval). The detail header only
+  /// returns codes (customer_code, salesman_code, …) and omits names and the
+  /// computed financials, so for every field we keep this quote's value when it
+  /// is present and fall back to the summary otherwise. This guarantees the
+  /// detail screen shows the same complete data as the list rather than blanks.
+  QuoteModel mergedWith(QuoteModel summary) {
+    String pick(String a, String b) => a.isNotEmpty ? a : b;
+    double pickNum(double a, double b) => a != 0 ? a : b;
+
+    return QuoteModel(
+      quoteNumber: pick(quoteNumber, summary.quoteNumber),
+      product: pick(product, summary.product),
+      customer: pick(customer, summary.customer),
+      contactPerson: pick(contactPerson, summary.contactPerson),
+      endUser: pick(endUser, summary.endUser),
+      customerPO: pick(customerPO, summary.customerPO),
+      salesmanName: pick(salesmanName, summary.salesmanName),
+      bdName: pick(bdName, summary.bdName),
+      buGroup: pick(buGroup, summary.buGroup),
+      poNumber: pick(poNumber, summary.poNumber),
+      poDate: poDate,
+      quoteDate: quoteDate,
+      quoteType: pick(quoteType, summary.quoteType),
+      term: pick(term, summary.term),
+      suContactPerson: pick(suContactPerson, summary.suContactPerson),
+      destination: pick(destination, summary.destination),
+      billingAmount: pickNum(billingAmount, summary.billingAmount),
+      buyPrice: pickNum(buyPrice, summary.buyPrice),
+      incidentalAmount: pickNum(incidentalAmount, summary.incidentalAmount),
+      gpAmount: pickNum(gpAmount, summary.gpAmount),
+      gpPercentage: pickNum(gpPercentage, summary.gpPercentage),
+      forex: pickNum(forex, summary.forex),
+      allowedUpPercent: pickNum(allowedUpPercent, summary.allowedUpPercent),
+      reason: pick(reason, summary.reason),
+      status: status,
+      items: items,
+      incidentals: incidentals,
+      attachments: attachments,
+      salesmanNote: salesmanNote ?? summary.salesmanNote,
+      checking: pick(checking, summary.checking),
+    );
+  }
 }

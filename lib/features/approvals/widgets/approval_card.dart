@@ -68,7 +68,7 @@ class ApprovalCard extends StatelessWidget {
                 const SizedBox(width: 16),
                 _FieldCol(
                   label: 'BU GROUP',
-                  value: quote.bdName,
+                  value: quote.buGroup,
                   crossAxisAlignment: CrossAxisAlignment.end,
                 ),
               ],

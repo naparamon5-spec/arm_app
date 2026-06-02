@@ -34,6 +34,20 @@ class QuoteMapper {
   }) {
     final map = asJsonMap(json);
 
+    final selling = map.dbl([
+      'total_selling_price_dol', // vw_QuoteForApproval (list)
+      'total_selling_price', // quotation_header (detail)
+      'billing_amount', 'billingAmount', 'bill_amt',
+    ]);
+    final buy = map.dbl([
+      'total_buy_price_dol', // list
+      'total_buy_price', // detail
+      'buy_price', 'buyPrice', 'cost',
+    ]);
+    // GP amount is only returned directly by the list view (gp_amount_dol);
+    // the detail header omits it, so derive it from selling - buy.
+    final gp = map.dbl(['gp_amount_dol', 'gp_amount', 'gpAmount', 'gp_amt']);
+
     return QuoteModel(
       quoteNumber: map.str(['quote_number', 'quoteNumber', 'QT_NO']),
       product: map.str([
@@ -42,46 +56,50 @@ class QuoteMapper {
         'product',
         'PRODUCT_GROUP',
       ]),
-      customer: map.str(['customer_name', 'customer', 'CUSTOMER_NAME']),
-      contactPerson: map.str([
-        'contact_person',
-        'contactPerson',
-        'customer_contact',
-      ]),
-      endUser: map.str(['end_user', 'endUser', 'end_user_name']),
+      customer: QuoteModel.parseString(
+        json['customer_name'] ?? json['customer'] ?? json['CUSTOMER_NAME'],
+      ),
+      contactPerson: QuoteModel.parseString(
+        json['customer_contact_person'] ?? json['contact_person'] ??
+        json['contactPerson'] ?? json['customer_contact'],
+      ),
+      endUser: QuoteModel.parseString(
+        json['end_user_name'] ?? json['end_user'] ?? json['endUser'],
+      ),
       customerPO: map.str(['customer_po', 'customerPO', 'cust_po']),
-      salesmanName: map.str([
-        'salesman_name',
-        'salesman',
-        'sales_man',
-        'SALESMAN_NAME',
-      ]),
-      bdName: map.str(['bu_group', 'bd_name', 'bdName', 'BU_GROUP']),
+      salesmanName: QuoteModel.parseString(
+        json['salesman'] ?? json['salesman_name'] ?? json['sales_man'] ?? json['SALESMAN_NAME'],
+      ),
+      // BDM (Business Development Manager) name — distinct from BU group.
+      bdName: QuoteModel.parseString(
+        json['bdm'] ?? json['bd_name'] ?? json['bdName'] ?? json['bdm_name'] ?? json['bdm_code'],
+      ),
+      buGroup: map.str(['bu_group', 'BU_GROUP']),
       poNumber: map.str(['po_number', 'poNumber', 'PO_NO']),
       poDate: map.date(['po_date', 'poDate']),
       quoteDate: map.date(['quote_date', 'quoteDate']),
-      quoteType: map.str(['quote_type', 'quoteType', 'type']),
-      term: map.str(['term', 'payment_term', 'terms']),
-      suContactPerson: map.str([
-        'su_contact_person',
-        'suContactPerson',
-        'end_user_contact',
-      ]),
+      quoteType: map.str(['quote_type_desc', 'quote_type', 'quoteType', 'type']),
+      term: map.str(['TERM_DESCRIPTION', 'term_description', 'term', 'payment_term', 'terms']),
+      suContactPerson: QuoteModel.parseString(
+        json['eu_contact_person'] ?? json['su_contact_person'] ??
+        json['suContactPerson'] ?? json['end_user_contact'],
+      ),
       destination: map.str(['destination', 'ship_destination']),
-      billingAmount: map.dbl(['billing_amount', 'billingAmount', 'bill_amt']),
-      buyPrice: map.dbl(['buy_price', 'buyPrice', 'cost']),
+      // SELLING — dollar value (PHP sub-value is computed as value * forex).
+      billingAmount: selling,
+      buyPrice: buy,
       incidentalAmount: map.dbl([
-        'incidental_amount',
-        'incidentalAmount',
-        'tpc_amount',
+        'incidental_cost', // list
+        'miscellaneous_amount', // detail
+        'incidental_amount', 'incidentalAmount', 'tpc_amount',
       ]),
-      gpAmount: map.dbl(['gp_amount', 'gpAmount', 'gp_amt']),
-      gpPercentage: map.dbl(['gp_percentage', 'gpPercentage', 'gp_percent']),
+      gpAmount: gp != 0 ? gp : (selling - buy),
+      gpPercentage: _gpPercent(map),
       forex: map.dbl(['forex', 'forex_rate']),
       allowedUpPercent: map.dbl([
-        'allowed_up_percent',
-        'allowedUpPercent',
-        'markup_percent',
+        'allowed_gp', // list (already a whole percent, e.g. 5)
+        'margin', // detail
+        'allowed_up_percent', 'allowedUpPercent', 'markup_percent',
       ]),
       reason: map.str(['reason', 'remarks', 'checking_remarks']),
       status: _statusFrom(map.str(['status', 'checking', 'approval_status'])),
@@ -140,6 +158,15 @@ class QuoteMapper {
       uploadedDate: map.date(['uploaded_date', 'uploadedDate', 'date_uploaded']),
       url: map.str(['url', 'file_url', 'path', 'file_path']),
     );
+  }
+
+  /// GP% is returned as a fraction (`0.05` = 5%) under `gp_perc` /
+  /// `overall_gp_percent`. Normalise it to a whole percent for display.
+  /// Falls back to legacy keys that already store a percentage.
+  static double _gpPercent(Map<String, dynamic> map) {
+    final fraction = map.dbl(['gp_perc', 'overall_gp_percent']);
+    if (fraction != 0) return fraction * 100;
+    return map.dbl(['gp_percentage', 'gpPercentage', 'gp_percent']);
   }
 
   static QuoteStatus _statusFrom(String raw) {

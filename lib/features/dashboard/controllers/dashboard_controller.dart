@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/di/app_dependencies.dart';
@@ -31,14 +32,15 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final recent = await _quoteRepo.getRecentQuotes();
-      _recentQuotes = recent;
-
+      _recentQuotes = await _quoteRepo.getRecentQuotes();
       final page = await _quoteRepo.getPendingQuotes(page: 1, pageSize: 1);
       _pendingCount = page.total;
+      debugPrint('[Dashboard] loaded ${_recentQuotes.length} recent quotes, total=${page.total}');
     } on ApiException catch (e) {
+      debugPrint('[Dashboard] ApiException: ${e.message} (${e.statusCode})');
       _errorMessage = e.message;
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[Dashboard] unexpected error: $e\n$st');
       _errorMessage = 'Failed to load dashboard data.';
     } finally {
       _isLoading = false;
