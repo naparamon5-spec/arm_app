@@ -20,12 +20,18 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
   assets:
     - assets/ARM.png
     - assets/ArdentLogo.png
+    - assets/developed_by_branding.png
+    - assets/ArdentLogoCentred.png
+    - assets/ARMCentred.png
+    - assets/ARMLauncherIcon.png
   fonts:
     - family: HankenGrotesk
       fonts:
