@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'app.dart';
+import 'core/di/app_dependencies.dart';
+import 'features/approvals/controllers/approvals_controller.dart';
 import 'features/auth/controllers/auth_controller.dart';
 import 'features/dashboard/controllers/dashboard_controller.dart';
-import 'features/approvals/controllers/approvals_controller.dart';
 import 'shared/controllers/main_tab_controller.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppDependencies.instance.initialize();
+
   runApp(
     MultiProvider(
       providers: [

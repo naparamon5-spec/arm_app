@@ -33,6 +33,8 @@ class QuoteModel {
   final List<IncidentalModel> incidentals;
   final List<AttachmentModel> attachments;
   final String? salesmanNote;
+  /// Approval workflow state from API (`checking` column).
+  final String checking;
 
   const QuoteModel({
     required this.quoteNumber,
@@ -63,5 +65,9 @@ class QuoteModel {
     required this.incidentals,
     required this.attachments,
     this.salesmanNote,
+    this.checking = '',
   });
+
+  bool get requiresRemarksOnApprove =>
+      checking.toUpperCase().contains('NEGATIVE GP');
 }

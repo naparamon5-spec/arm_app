@@ -1,34 +1,10 @@
+import '../core/di/app_dependencies.dart';
 import '../data/models/user_model.dart';
-import '../data/repositories/auth_repository.dart';
 
+/// Facade for auth state used by legacy call sites.
 class AuthService {
-  final _repository = AuthRepository();
-  UserModel? _currentUser;
+  final _session = AppDependencies.instance.sessionService;
 
-  UserModel? get currentUser => _currentUser;
-  bool get isLoggedIn => _currentUser != null;
-
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final user = await _repository.login(email: email, password: password);
-      if (user != null) {
-        _currentUser = user;
-        return true;
-      }
-      return false;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> logout() async {
-    try {
-      await _repository.logout();
-    } finally {
-      _currentUser = null;
-    }
-  }
+  UserModel? get currentUser => _session.currentUser;
+  bool get isLoggedIn => _session.isLoggedIn;
 }

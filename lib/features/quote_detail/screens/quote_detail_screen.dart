@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../shared/widgets/confirmation_dialog.dart';
 import '../../../shared/widgets/loading_overlay.dart';
@@ -44,18 +42,62 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
     super.dispose();
   }
 
+  Future<String?> _promptRemarks() async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Approver remarks'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: 'Required for negative GP quotes',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _onApprove() {
+    final quote = _controller.quote ?? widget.quote;
+
     ConfirmationDialog.show(
       context: context,
       title: AppStrings.approveTitle,
       message: AppStrings.approveMessage,
       confirmLabel: AppStrings.confirm,
       cancelLabel: AppStrings.cancel,
-      onConfirm: () {
+      onConfirm: () async {
+        String? remarks;
+        if (quote.requiresRemarksOnApprove) {
+          remarks = await _promptRemarks();
+          if (remarks == null || remarks.isEmpty) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Approver's remarks are required"),
+                ),
+              );
+            }
+            return;
+          }
+        }
+
         _controller.approveQuote(
+          remarks: remarks,
           onSuccess: () {
             if (mounted) {
-              context.findAncestorStateOfType<ScaffoldMessengerState>();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Quote approved successfully!'),
@@ -67,6 +109,12 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
             }
           },
         );
+
+        if (mounted && _controller.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_controller.errorMessage!)),
+          );
+        }
       },
     );
   }
@@ -77,6 +125,8 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
       value: _controller,
       child: Consumer<QuoteDetailController>(
         builder: (context, controller, _) {
+          final quote = controller.quote ?? widget.quote;
+
           return LoadingOverlay(
             isLoading: controller.isLoading,
             child: Scaffold(
@@ -139,16 +189,16 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
               ),
               body: Column(
                 children: [
-                  QuoteHeaderCard(quote: widget.quote),
-                  _TabBar(controller: _tabController, quote: widget.quote),
+                  QuoteHeaderCard(quote: quote),
+                  _TabBar(controller: _tabController, quote: quote),
                   Expanded(
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        DetailsTab(quote: widget.quote),
-                        ItemsTab(quote: widget.quote),
-                        IncidentalTab(quote: widget.quote),
-                        FilesTab(quote: widget.quote),
+                        DetailsTab(quote: quote),
+                        ItemsTab(quote: quote),
+                        IncidentalTab(quote: quote),
+                        FilesTab(quote: quote),
                       ],
                     ),
                   ),
@@ -183,19 +233,13 @@ class _TabBar extends StatelessWidget {
         indicatorColor: const Color(0xFFD32F2F),
         indicatorWeight: 2.5,
         tabs: [
-          Tab(
-            child: RichText(
-              text: const TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Details',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A2E),
-                    ),
-                  ),
-                ],
+          const Tab(
+            child: Text(
+              'Details',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A2E),
               ),
             ),
           ),
@@ -223,19 +267,13 @@ class _TabBar extends StatelessWidget {
               ),
             ),
           ),
-          Tab(
-            child: RichText(
-              text: const TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Incidental',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A2E),
-                    ),
-                  ),
-                ],
+          const Tab(
+            child: Text(
+              'Incidental',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1A1A2E),
               ),
             ),
           ),

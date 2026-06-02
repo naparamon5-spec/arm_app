@@ -41,6 +41,7 @@ class _LoginFormState extends State<LoginForm> {
 
   void _submit(AuthController controller) {
     if (!_formKey.currentState!.validate()) return;
+    controller.setRememberDevice(_rememberMe);
     controller.login(
       userId: _userIdController.text.trim(),
       password: _passwordController.text,

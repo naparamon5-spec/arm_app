@@ -1,27 +1,30 @@
 import 'package:flutter/material.dart';
-import '../../../data/mock/mock_data.dart';
+
+import '../../../core/config/api_config.dart';
+import '../../../core/di/app_dependencies.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../data/models/quote_model.dart';
 
 class ApprovalsController extends ChangeNotifier {
+  final _quoteRepo = AppDependencies.instance.quoteRepository;
+
   bool _isLoading = false;
   String? _errorMessage;
-  List<QuoteModel> _allQuotes = [];
-  List<QuoteModel> _filteredQuotes = [];
+  List<QuoteModel> _quotes = [];
   String _searchQuery = '';
 
   int _currentPage = 1;
+  int _totalPages = 1;
   bool _isLoadingMore = false;
-  bool _hasMoreData = true;
-  final int _pageSize = 10;
 
   final ScrollController scrollController = ScrollController();
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  List<QuoteModel> get filteredQuotes => _filteredQuotes;
+  List<QuoteModel> get filteredQuotes => _quotes;
   String get searchQuery => _searchQuery;
   bool get isLoadingMore => _isLoadingMore;
-  bool get hasMoreData => _hasMoreData;
+  bool get hasMoreData => _currentPage < _totalPages;
 
   ApprovalsController() {
     scrollController.addListener(() {
@@ -36,15 +39,19 @@ class ApprovalsController extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     _currentPage = 1;
-    _hasMoreData = true;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(milliseconds: 600));
-      _allQuotes = MockData.pendingQuotes;
-      _filteredQuotes = List.from(_allQuotes);
+      final result = await _fetchPage(1);
+      _quotes = result.data;
+      _currentPage = result.page;
+      _totalPages = result.totalPages;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+      _quotes = [];
     } catch (_) {
       _errorMessage = 'Failed to load approvals.';
+      _quotes = [];
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -52,36 +59,50 @@ class ApprovalsController extends ChangeNotifier {
   }
 
   Future<void> loadMoreQuotes() async {
-    if (_isLoadingMore || !_hasMoreData) return;
+    if (_isLoadingMore || !hasMoreData || _isLoading) return;
     _isLoadingMore = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
-    _currentPage++;
-    if (_currentPage > 5) _hasMoreData = false;
-    _isLoadingMore = false;
-    notifyListeners();
+    try {
+      final nextPage = _currentPage + 1;
+      final result = await _fetchPage(nextPage);
+      _quotes = [..._quotes, ...result.data];
+      _currentPage = result.page;
+      _totalPages = result.totalPages;
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
+    } catch (_) {
+      _errorMessage = 'Failed to load more approvals.';
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
   }
 
-  void search(String query) {
-    _searchQuery = query.trim().toLowerCase();
-    if (_searchQuery.isEmpty) {
-      _filteredQuotes = List.from(_allQuotes);
-    } else {
-      _filteredQuotes = _allQuotes.where((q) {
-        return q.quoteNumber.toLowerCase().contains(_searchQuery) ||
-            q.customer.toLowerCase().contains(_searchQuery) ||
-            q.salesmanName.toLowerCase().contains(_searchQuery) ||
-            q.product.toLowerCase().contains(_searchQuery);
-      }).toList();
-    }
-    notifyListeners();
+  Future<void> search(String query) async {
+    _searchQuery = query.trim();
+    await loadApprovals();
   }
 
   void clearSearch() {
     _searchQuery = '';
-    _filteredQuotes = List.from(_allQuotes);
-    notifyListeners();
+    loadApprovals();
+  }
+
+  Future<dynamic> _fetchPage(int page) {
+    final q = _searchQuery;
+    return _quoteRepo.getPendingQuotes(
+      page: page,
+      pageSize: ApiConfig.defaultPageSize,
+      quoteNumber: _looksLikeQuoteNumber(q) ? q : null,
+      customerName: _looksLikeQuoteNumber(q) ? null : (q.isEmpty ? null : q),
+      productGroupName: null,
+    );
+  }
+
+  bool _looksLikeQuoteNumber(String q) {
+    if (q.isEmpty) return false;
+    return RegExp(r'^[#Q\d\-]', caseSensitive: false).hasMatch(q);
   }
 
   @override

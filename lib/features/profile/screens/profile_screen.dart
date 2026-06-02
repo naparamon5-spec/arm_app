@@ -4,6 +4,7 @@ import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
 import '../../../shared/widgets/loading_overlay.dart';
+import '../../../data/models/user_model.dart';
 import '../controllers/profile_controller.dart';
 import 'change_password_screen.dart';
 
@@ -54,12 +55,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Scaffold(
               backgroundColor: const Color(0xFFF4F7F8),
               appBar: const AppBarWidget(),
-              body: controller.errorMessage != null
+              body: controller.errorMessage != null && controller.user == null
                   ? AppErrorWidget(
                       message: controller.errorMessage,
                       onRetry: () => controller.loadProfile(),
                     )
-                  : _Body(onSignOut: _onSignOut),
+                  : _Body(
+                      onSignOut: _onSignOut,
+                      controller: controller,
+                    ),
             ),
           );
         },
@@ -70,8 +74,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 class _Body extends StatelessWidget {
   final VoidCallback onSignOut;
+  final ProfileController controller;
 
-  const _Body({required this.onSignOut});
+  const _Body({
+    required this.onSignOut,
+    required this.controller,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +91,7 @@ class _Body extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-              _ProfileInfoCard(),
+              _ProfileInfoCard(user: controller.user),
               const SizedBox(height: 32),
               const Text(
                 'ACCOUNT PREFERENCES',
@@ -95,7 +103,7 @@ class _Body extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              _ChangePasswordTile(),
+              _ChangePasswordTile(controller: controller),
               const SizedBox(height: 140),
             ],
           ),
@@ -128,8 +136,17 @@ class _Body extends StatelessWidget {
 }
 
 class _ProfileInfoCard extends StatelessWidget {
+  final UserModel? user;
+
+  const _ProfileInfoCard({required this.user});
+
   @override
   Widget build(BuildContext context) {
+    final name = user?.fullName ?? '—';
+    final role = user?.role ?? '—';
+    final email = user?.email ?? '—';
+    final userId = user?.id ?? '—';
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -140,9 +157,9 @@ class _ProfileInfoCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text(
-            'Mark Cedrick Almueda',
-            style: TextStyle(
+          Text(
+            name,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: Color(0xFF1A1A2E),
@@ -150,9 +167,9 @@ class _ProfileInfoCard extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Technical Support Engineer',
-            style: TextStyle(
+          Text(
+            role,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Color(0xFFD32F2F),
@@ -165,15 +182,19 @@ class _ProfileInfoCard extends StatelessWidget {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.email_outlined, size: 16, color: Color(0xFF9CA3AF)),
-              SizedBox(width: 6),
-              Text(
-                'cedrick.almueda@ardentnetworks.com.ph',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
+            children: [
+              const Icon(Icons.email_outlined, size: 16, color: Color(0xFF9CA3AF)),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  email,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF6B7280),
+                  ),
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -181,12 +202,12 @@ class _ProfileInfoCard extends StatelessWidget {
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.business_outlined, size: 16, color: Color(0xFF9CA3AF)),
-              SizedBox(width: 6),
+            children: [
+              const Icon(Icons.badge_outlined, size: 16, color: Color(0xFF9CA3AF)),
+              const SizedBox(width: 6),
               Text(
-                'Ardent Networks Inc.',
-                style: TextStyle(
+                userId,
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w400,
                   color: Color(0xFF6B7280),
@@ -201,65 +222,72 @@ class _ProfileInfoCard extends StatelessWidget {
 }
 
 class _ChangePasswordTile extends StatelessWidget {
+  final ProfileController controller;
+
+  const _ChangePasswordTile({required this.controller});
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => const ChangePasswordScreen(),
+          builder: (_) => ChangeNotifierProvider.value(
+            value: controller,
+            child: const ChangePasswordScreen(),
+          ),
         ),
       ),
       child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.lock_outline,
+                size: 20,
+                color: Color(0xFFD32F2F),
+              ),
             ),
-            child: const Icon(
-              Icons.lock_outline,
-              size: 20,
-              color: Color(0xFFD32F2F),
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Change Password',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A2E),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Change Password',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
                   ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Update your security credentials',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF9CA3AF),
+                  SizedBox(height: 2),
+                  Text(
+                    'Update your security credentials',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF9CA3AF),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, size: 18, color: Color(0xFF9CA3AF)),
-        ],
+            const Icon(Icons.chevron_right, size: 18, color: Color(0xFF9CA3AF)),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

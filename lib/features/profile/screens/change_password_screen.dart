@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../controllers/profile_controller.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -35,7 +37,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit(ProfileController controller) async {
     if (!_allRequirementsMet) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -44,11 +46,33 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       );
       return;
     }
-    _formKey.currentState?.validate();
+    if (_formKey.currentState?.validate() != true) return;
+
+    await controller.changePassword(
+      currentPassword: _currentPasswordController.text,
+      newPassword: _newPasswordController.text,
+      onSuccess: () {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password changed successfully')),
+        );
+        Navigator.pop(context);
+      },
+    );
+
+    if (!mounted) return;
+    final error = controller.errorMessage;
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<ProfileController>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7F8),
       appBar: _buildAppBar(context),
@@ -172,7 +196,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _submit,
+                  onPressed: controller.isLoading
+                      ? null
+                      : () => _submit(controller),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
                     elevation: 0,
@@ -180,7 +206,16 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Row(
+                  child: controller.isLoading
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: const [
                       Text(

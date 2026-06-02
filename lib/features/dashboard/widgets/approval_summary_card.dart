@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../../data/mock/mock_data.dart';
+import '../../../core/di/app_dependencies.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../shared/navigation/app_router.dart';
 
 class ApprovalSummaryCard extends StatefulWidget {
@@ -143,7 +144,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
     });
   }
 
-  void _runSearch() {
+  Future<void> _runSearch() async {
     final input = _inputController.text.trim();
     if (input.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,15 +152,25 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       );
       return;
     }
-    final matches = MockData.pendingQuotes.where(
-      (q) => q.quoteNumber.replaceAll('#', '').contains(input),
-    );
-    if (matches.isNotEmpty) {
+
+    try {
+      final quote = await AppDependencies.instance.quoteRepository
+          .getQuoteFull(input);
+      if (!mounted) return;
       Navigator.of(context).pushNamed(
         AppRouter.quoteDetail,
-        arguments: matches.first,
+        arguments: quote,
       );
-    } else {
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message),
+          backgroundColor: const Color(0xFF1C2333),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Quote #$input not found'),

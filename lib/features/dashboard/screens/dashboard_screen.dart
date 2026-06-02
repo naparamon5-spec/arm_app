@@ -5,7 +5,6 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
-import '../../../data/mock/mock_data.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -63,7 +62,7 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstName = MockData.currentUser.fullName.split(' ').first;
+    final firstName = controller.welcomeName;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -99,55 +98,26 @@ class _Body extends StatelessWidget {
             style: AppTextStyles.sectionHeader,
           ),
           const SizedBox(height: AppSpacing.lg),
-          RecentApprovalTile(
-            quoteNumber: controller.recentQuotes[0].quoteNumber,
-            description: '${controller.recentQuotes[0].product} — ${controller.recentQuotes[0].customer}',
-            timeAgo: DateFormatter.timeAgo(controller.recentQuotes[0].quoteDate),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: controller.recentQuotes[0],
+          if (controller.recentQuotes.isEmpty)
+            const Text(
+              'No recent quotes pending approval.',
+              style: AppTextStyles.bodySmall,
+            )
+          else
+            ...controller.recentQuotes.map(
+              (quote) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: RecentApprovalTile(
+                  quoteNumber: quote.quoteNumber,
+                  description: '${quote.product} — ${quote.customer}',
+                  timeAgo: DateFormatter.timeAgo(quote.quoteDate),
+                  onTap: () => Navigator.of(context).pushNamed(
+                    AppRouter.quoteDetail,
+                    arguments: quote,
+                  ),
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          RecentApprovalTile(
-            quoteNumber: controller.recentQuotes[1].quoteNumber,
-            description: '${controller.recentQuotes[1].product} — ${controller.recentQuotes[1].customer}',
-            timeAgo: DateFormatter.timeAgo(controller.recentQuotes[1].quoteDate),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: controller.recentQuotes[1],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          RecentApprovalTile(
-            quoteNumber: controller.recentQuotes[2].quoteNumber,
-            description: '${controller.recentQuotes[2].product} — ${controller.recentQuotes[2].customer}',
-            timeAgo: DateFormatter.timeAgo(controller.recentQuotes[2].quoteDate),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: controller.recentQuotes[2],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          RecentApprovalTile(
-            quoteNumber: controller.recentQuotes[3].quoteNumber,
-            description: '${controller.recentQuotes[3].product} — ${controller.recentQuotes[3].customer}',
-            timeAgo: DateFormatter.timeAgo(controller.recentQuotes[3].quoteDate),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: controller.recentQuotes[3],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          RecentApprovalTile(
-            quoteNumber: controller.recentQuotes[4].quoteNumber,
-            description: '${controller.recentQuotes[4].product} — ${controller.recentQuotes[4].customer}',
-            timeAgo: DateFormatter.timeAgo(controller.recentQuotes[4].quoteDate),
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: controller.recentQuotes[4],
-            ),
-          ),
         ],
       ),
     );

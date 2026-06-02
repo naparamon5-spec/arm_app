@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/di/app_dependencies.dart';
+import '../../../core/network/api_exception.dart';
+
 class AuthController extends ChangeNotifier {
+  final _authRepo = AppDependencies.instance.authRepository;
+  final _session = AppDependencies.instance.sessionService;
+
   bool _isLoading = false;
   String? _errorMessage;
-  bool _rememberDevice = false;
+  bool _rememberDevice = true;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -11,6 +17,7 @@ class AuthController extends ChangeNotifier {
 
   void setRememberDevice(bool value) {
     _rememberDevice = value;
+    _session.setRememberDevice(value);
     notifyListeners();
   }
 
@@ -19,20 +26,16 @@ class AuthController extends ChangeNotifier {
     required String password,
     required VoidCallback onSuccess,
   }) async {
-    const validUserId = 'CEDRICK-A';
-    const validPassword = 'Password123.';
-
     _isLoading = true;
     _errorMessage = null;
+    _session.setRememberDevice(_rememberDevice);
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(seconds: 1));
-      if (userId == validUserId && password == validPassword) {
-        onSuccess();
-      } else {
-        _errorMessage = 'Invalid User ID or password. Please try again.';
-      }
+      await _authRepo.login(userId: userId, password: password);
+      onSuccess();
+    } on ApiException catch (e) {
+      _errorMessage = e.message;
     } catch (_) {
       _errorMessage = 'Login failed. Please check your credentials.';
     } finally {

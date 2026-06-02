@@ -1,0 +1,87 @@
+import 'dart:convert';
+
+import '../core/network/token_storage.dart';
+import '../data/models/user_model.dart';
+
+/// Holds the active session (tokens + display user) for the app.
+class SessionService {
+  final TokenStorage tokenStorage;
+
+  UserModel? _currentUser;
+  bool _rememberDevice = true;
+
+  SessionService({required this.tokenStorage});
+
+  UserModel? get currentUser => _currentUser;
+  bool get isLoggedIn => _currentUser != null;
+  bool get rememberDevice => _rememberDevice;
+
+  void setRememberDevice(bool value) => _rememberDevice = value;
+
+  Future<void> restoreSession() async {
+    final userId = await tokenStorage.userId;
+    final accessToken = await tokenStorage.accessToken;
+    if (userId == null ||
+        userId.isEmpty ||
+        accessToken == null ||
+        accessToken.isEmpty) {
+      _currentUser = null;
+      return;
+    }
+    _currentUser = _userFromToken(userId, accessToken);
+  }
+
+  Future<void> setSession({
+    required String userId,
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    if (_rememberDevice) {
+      await tokenStorage.saveSession(
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        userId: userId,
+      );
+    }
+    _currentUser = _userFromToken(userId, accessToken);
+  }
+
+  Future<void> clearSession() async {
+    await tokenStorage.clear();
+    _currentUser = null;
+  }
+
+  UserModel _userFromToken(String userId, String accessToken) {
+    final claims = _decodeJwtPayload(accessToken);
+    final name = claims?['name']?.toString() ??
+        claims?['full_name']?.toString() ??
+        claims?['user_name']?.toString() ??
+        userId;
+    final role = claims?['role']?.toString() ??
+        claims?['privilege']?.toString() ??
+        'Quote Approver';
+    final email = claims?['email']?.toString() ?? '';
+
+    return UserModel(
+      id: userId,
+      fullName: name,
+      role: role,
+      email: email.isNotEmpty ? email : userId,
+    );
+  }
+
+  Map<String, dynamic>? _decodeJwtPayload(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length < 2) return null;
+      var payload = parts[1];
+      final mod = payload.length % 4;
+      if (mod > 0) payload += '=' * (4 - mod);
+      final decoded = utf8.decode(base64Url.decode(payload));
+      final json = jsonDecode(decoded);
+      if (json is Map<String, dynamic>) return json;
+      if (json is Map) return Map<String, dynamic>.from(json);
+    } catch (_) {}
+    return null;
+  }
+}
