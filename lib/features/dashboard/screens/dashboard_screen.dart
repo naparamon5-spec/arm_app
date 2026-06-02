@@ -69,7 +69,7 @@ class _Body extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.xxl),
           RichText(
             text: TextSpan(
               children: [
@@ -90,9 +90,9 @@ class _Body extends StatelessWidget {
             AppStrings.dashboardSubtitle,
             style: AppTextStyles.dashboardSubtitleText,
           ),
-          const SizedBox(height: AppSpacing.xxxl),
+          const SizedBox(height: AppSpacing.lg),
           const ApprovalSummaryCard(),
-          const SizedBox(height: 70),
+          const SizedBox(height: AppSpacing.xl),
           const Text(
             AppStrings.recentPendingApprovals,
             style: AppTextStyles.sectionHeader,

@@ -254,13 +254,30 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
                           animation: _cursorController,
                           builder: (context, _) {
                             final cursorVisible = _cursorController.value > 0.5;
-                            return Text(
-                              '$_displayDigits${cursorVisible ? '|' : ' '}',
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedOpacity(
+                                  opacity: _isInteracting ? 1.0 : 0.45,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: Text(
+                                    _displayDigits,
+                                    style: const TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  cursorVisible ? '|' : ' ',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             );
                           },
                         ),

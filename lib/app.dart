@@ -17,7 +17,7 @@ class ArdentApp extends StatelessWidget {
       title: 'Ardent Resource Management',
       theme: AppTheme.light,
       debugShowCheckedModeBanner: false,
-      initialRoute: initialRoute,
+      initialRoute: AppRouter.splash,
       onGenerateRoute: AppRouter.generateRoute,
     );
   }
