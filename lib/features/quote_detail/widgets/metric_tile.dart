@@ -24,9 +24,20 @@ class MetricTile extends StatelessWidget {
       children: [
         Text(label, style: AppTextStyles.metricCellLabel),
         const SizedBox(height: AppSpacing.line),
-        Text(
-          value,
-          style: AppTextStyles.metricValue.copyWith(color: valueColor),
+        Row(
+          children: [
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: AppTextStyles.metricValue.copyWith(color: valueColor),
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          ],
         ),
         if (subValue != null)
           Text(subValue!, style: AppTextStyles.metricCellSub),
