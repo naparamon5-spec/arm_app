@@ -29,6 +29,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
   String _displayDigits = '';
   String _targetDigits = '';
   bool _isInteracting = false;
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -149,6 +150,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
   }
 
   Future<void> _runSearch() async {
+    if (_isSearching) return;
     final input = _inputController.text.trim();
     if (input.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -157,16 +159,23 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       return;
     }
 
+    setState(() => _isSearching = true);
     try {
       final quote =
           await AppDependencies.instance.quoteRepository.getQuoteFull(input);
       if (!mounted) return;
-      Navigator.of(context).pushNamed(
+      setState(() => _isSearching = false);
+      // Wait until the user comes back from the detail screen, then clear the
+      // field and resume the typewriter animation for the next search.
+      await Navigator.of(context).pushNamed(
         AppRouter.quoteDetail,
         arguments: quote,
       );
+      if (!mounted) return;
+      _resetToIdle();
     } on ApiException catch (e) {
       if (!mounted) return;
+      setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message),
@@ -175,6 +184,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       );
     } catch (_) {
       if (!mounted) return;
+      setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Quote #$input not found'),
@@ -182,6 +192,20 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
         ),
       );
     }
+  }
+
+  /// Clears the typed quote number and returns the card to its idle,
+  /// animated state — used after returning from a search result.
+  void _resetToIdle() {
+    _inputController.clear();
+    _focusNode.unfocus();
+    if (mounted) {
+      setState(() {
+        _isInteracting = false;
+        _isSearching = false;
+      });
+    }
+    _startTypewriterLoop();
   }
 
   // ── build ─────────────────────────────────────────────────────────────────
@@ -285,17 +309,26 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
                       ),
               ),
               const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  if (!_isInteracting) _activateInput();
-                  _runSearch();
-                },
-                child: const Icon(
-                  Icons.search,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
+              _isSearching
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                  : GestureDetector(
+                      onTap: () {
+                        if (!_isInteracting) _activateInput();
+                        _runSearch();
+                      },
+                      child: const Icon(
+                        Icons.search,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
             ],
           ),
           const SizedBox(height: 10),
