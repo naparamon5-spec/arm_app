@@ -148,6 +148,22 @@ class ApiClient {
     );
   }
 
+  /// Downloads a binary resource (e.g. an uploaded file) as raw bytes, with the
+  /// Authorization header attached so protected endpoints can be opened in-app.
+  Future<Response<List<int>>> getBytes(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+  }) {
+    return dio.get<List<int>>(
+      path,
+      queryParameters: queryParameters,
+      options: Options(
+        responseType: ResponseType.bytes,
+        extra: {'skipAuth': false},
+      ),
+    );
+  }
+
   Future<Response<T>> post<T>(
     String path, {
     Object? data,

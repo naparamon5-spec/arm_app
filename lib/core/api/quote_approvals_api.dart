@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../config/api_config.dart';
@@ -137,6 +139,20 @@ class QuoteApprovalsApi {
       return _asRowList(rows);
     } on DioException catch (e) {
       _client.throwFromDio(e, 'Failed to retrieve CPO files');
+    }
+  }
+
+  /// Downloads an uploaded file's bytes via the authenticated endpoint
+  /// GET /api/quote-approvals/files/:filename — used to preview files in-app.
+  Future<Uint8List> downloadFile(String filename) async {
+    try {
+      final response = await _client.getBytes(ApiPaths.quoteFile(filename));
+      return Uint8List.fromList(response.data ?? const []);
+    } on DioException catch (e) {
+      // ignore: avoid_print
+      print('[QuoteApi] downloadFile error: filename=$filename '
+          'status=${e.response?.statusCode} msg=${e.message}');
+      _client.throwFromDio(e, 'Failed to download file');
     }
   }
 

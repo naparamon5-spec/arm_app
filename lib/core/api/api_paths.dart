@@ -27,6 +27,11 @@ class ApiPaths {
   static String quoteCpoFiles(String quoteNumber) =>
       '/api/quote-approvals/$quoteNumber/cpo-files';
 
+  /// Streams/downloads a single uploaded file by its stored filename.
+  /// GET /api/quote-approvals/files/:filename
+  static String quoteFile(String filename) =>
+      '/api/quote-approvals/files/${Uri.encodeComponent(filename)}';
+
   static String quoteApprove(String quoteNumber) =>
       '/api/quote-approvals/$quoteNumber/approve';
 }

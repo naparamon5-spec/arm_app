@@ -1,4 +1,5 @@
 
+import '../../core/api/api_paths.dart';
 import '../../core/config/api_config.dart';
 import '../../core/utils/json_map_extensions.dart';
 import '../models/attachment_model.dart';
@@ -177,6 +178,7 @@ class QuoteMapper {
         ['uploaded_date', 'uploadedDate', 'date_uploaded', 'upload_date'],
       ),
       url: _fileUrl(map, storedName),
+      downloadName: _downloadName(map, storedName),
     );
   }
 
@@ -196,23 +198,32 @@ class QuoteMapper {
   }
 
   /// Builds a viewable URL for an attachment. Prefers an explicit http(s) URL;
-  /// otherwise turns the server file path (e.g. "C:/uploads/cpo_file/<name>",
-  /// served statically at "/uploads/cpo_file/<name>") into an absolute URL.
+  /// otherwise serves the file through the documented download endpoint
+  /// `GET /api/quote-approvals/files/:filename`, where `:filename` is the
+  /// stored (hashed) name the server uses to locate the file on disk.
   static String _fileUrl(Map<String, dynamic> map, String storedName) {
     final explicit = map.str(['url', 'file_url']);
     if (explicit.startsWith('http')) return explicit;
 
-    var path = map.str(['full_path']);
-    if (path.isEmpty) {
-      final dir = map.str(['file_path']);
-      path = dir.isEmpty ? storedName : '$dir$storedName';
+    // The endpoint keys off the bare stored filename. If only a full path is
+    // provided, take its last segment (handles both "/" and "\" separators).
+    var name = storedName;
+    if (name.isEmpty) {
+      final path = map.str(['full_path', 'file_path']).replaceAll('\\', '/');
+      name = path.isEmpty ? '' : path.split('/').last;
     }
-    // Normalise separators and drop a Windows drive prefix (e.g. "C:").
-    var rel = path.replaceAll('\\', '/').replaceFirst(RegExp(r'^[A-Za-z]:'), '');
-    if (!rel.startsWith('/')) rel = '/$rel';
-    // Encode each path segment so spaces/special chars produce a valid URL.
-    final encoded = rel.split('/').map(Uri.encodeComponent).join('/');
-    return '${ApiConfig.baseUrl}$encoded';
+    if (name.isEmpty) return '';
+
+    return '${ApiConfig.baseUrl}${ApiPaths.quoteFile(name)}';
+  }
+
+  /// Bare stored filename used as the `:filename` path parameter for the
+  /// authenticated download endpoint. Falls back to the last segment of a
+  /// full path when no plain name is provided.
+  static String _downloadName(Map<String, dynamic> map, String storedName) {
+    if (storedName.isNotEmpty) return storedName;
+    final path = map.str(['full_path', 'file_path']).replaceAll('\\', '/');
+    return path.isEmpty ? '' : path.split('/').last;
   }
 
   /// GP% is returned as a fraction (`0.05` = 5%) under `gp_perc` /

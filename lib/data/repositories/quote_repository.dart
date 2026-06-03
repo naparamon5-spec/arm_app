@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../../core/api/quote_approvals_api.dart';
 import '../../core/utils/json_map_extensions.dart';
 import '../mappers/quote_mapper.dart';
@@ -59,6 +61,11 @@ class QuoteRepository {
       tpc: tpc,
       cpoFiles: cpoFiles,
     );
+  }
+
+  /// Fetches an attachment's bytes (authenticated) for in-app preview.
+  Future<Uint8List> downloadFile(String filename) {
+    return quoteApi.downloadFile(filename);
   }
 
   Future<String> approveQuote(

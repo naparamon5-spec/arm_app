@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
@@ -7,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/attachment_model.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
+import '../screens/file_viewer_screen.dart';
 import '../widgets/file_attachment_tile.dart';
 
 class FilesTab extends StatelessWidget {
@@ -14,30 +14,13 @@ class FilesTab extends StatelessWidget {
 
   const FilesTab({super.key, required this.quote});
 
-  /// Opens the attachment in an in-app browser view (renders PDFs/images
-  /// without leaving the app), falling back to the system handler.
-  Future<void> _openFile(BuildContext context, AttachmentModel attachment) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final uri = Uri.tryParse(attachment.url);
-    if (uri == null || attachment.url.isEmpty) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text('File is not available to open.')),
-      );
-      return;
-    }
-
-    try {
-      final opened = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
-      if (opened) return;
-      // Some platforms can't host the in-app view — hand off to the OS.
-      final external =
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-      if (external) return;
-    } catch (_) {
-      // Fall through to the error message below.
-    }
-    messenger.showSnackBar(
-      SnackBar(content: Text('Could not open ${attachment.fileName}.')),
+  /// Opens the attachment in a full-screen, in-app viewer that downloads the
+  /// bytes through the authenticated API client and renders PDFs/images.
+  void _openFile(BuildContext context, AttachmentModel attachment) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FileViewerScreen(attachment: attachment),
+      ),
     );
   }
 
