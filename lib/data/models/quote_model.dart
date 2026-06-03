@@ -87,6 +87,12 @@ class QuoteModel {
           // customer object
           ?? value['CUSTOMER_NAME']?.toString()
           ?? value['customer_name']?.toString()
+          // product group object — prefer the short name ("DELL ISG") over the
+          // expanded description ("DELL Integrated Solutions Group").
+          ?? value['product_group_name']?.toString()
+          ?? value['PRODUCT_GROUP_NAME']?.toString()
+          ?? value['product_group_desc']?.toString()
+          ?? value['PRODUCT_GROUP_DESC']?.toString()
           ?? value['name']?.toString()
           ?? '';
     }

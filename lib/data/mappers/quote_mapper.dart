@@ -51,12 +51,16 @@ class QuoteMapper {
 
     return QuoteModel(
       quoteNumber: map.str(['quote_number', 'quoteNumber', 'QT_NO']),
-      product: map.str([
-        'product_group_name',
-        'product_group',
-        'product',
-        'PRODUCT_GROUP',
-      ]),
+      // Detail header returns the product group as a nested object
+      // (`productGroup`); the list view returns it flat. Show the short name
+      // ("DELL ISG"), not the expanded description.
+      product: QuoteModel.parseString(
+        json['productGroup'] ??
+            json['product_group'] ??
+            json['product_group_name'] ??
+            json['product'] ??
+            json['PRODUCT_GROUP'],
+      ),
       customer: QuoteModel.parseString(
         json['customer_name'] ?? json['customer'] ?? json['CUSTOMER_NAME'],
       ),

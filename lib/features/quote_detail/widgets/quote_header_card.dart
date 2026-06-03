@@ -77,6 +77,15 @@ class _RouteRow extends StatelessWidget {
   final QuoteModel quote;
   const _RouteRow({required this.quote});
 
+  /// "product_group_name · CUSTOMER_NAME" — drops either side when empty.
+  String get _productCustomerLabel {
+    final parts = [
+      quote.product.toUpperCase(),
+      quote.customer,
+    ].where((s) => s.trim().isNotEmpty);
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -99,7 +108,7 @@ class _RouteRow extends StatelessWidget {
                 const Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
                 const SizedBox(width: 4),
                 Text(
-                  quote.destination,
+                  _productCustomerLabel,
                   style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
