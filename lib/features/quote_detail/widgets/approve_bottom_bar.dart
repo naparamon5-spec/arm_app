@@ -33,7 +33,7 @@ class ApproveBottomBar extends StatelessWidget {
             child: SizedBox(
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: onApprove,
+                onPressed: null,
                 icon: const Icon(
                   Icons.check,
                   color: AppColors.textLight,
