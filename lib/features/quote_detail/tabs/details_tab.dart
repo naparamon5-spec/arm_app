@@ -3,6 +3,7 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../core/utils/field_formatter.dart';
 import '../../../data/models/quote_model.dart';
 import '../widgets/detail_row.dart';
 import '../widgets/section_card.dart';
@@ -24,9 +25,9 @@ class DetailsTab extends StatelessWidget {
             title: AppStrings.sectionQuoteDetails,
             children: [
               DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelQuoteNumber, value: quote.quoteNumber),
-                DetailRow(label: AppStrings.labelProduct, value: quote.product),
-                DetailRow(label: AppStrings.labelQuoteType, value: quote.quoteType),
+                DetailRow(label: AppStrings.labelQuoteNumber, value: FieldFormatter.orEmpty(quote.quoteNumber)),
+                DetailRow(label: AppStrings.labelProduct, value: FieldFormatter.orEmpty(quote.product)),
+                DetailRow(label: AppStrings.labelQuoteType, value: FieldFormatter.orEmpty(quote.quoteType)),
                 DetailRow(
                   label: AppStrings.labelQuoteDate,
                   value: DateFormatter.display(quote.quoteDate),
@@ -39,15 +40,15 @@ class DetailsTab extends StatelessWidget {
             title: AppStrings.sectionCustomerEndUsers,
             children: [
               DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelCustomer, value: quote.customer),
-                DetailRow(label: AppStrings.labelContactPerson, value: quote.contactPerson),
-                DetailRow(label: AppStrings.labelTerm, value: quote.term),
-                DetailRow(label: AppStrings.labelEndUser, value: quote.endUser),
+                DetailRow(label: AppStrings.labelCustomer, value: FieldFormatter.orEmpty(quote.customer)),
+                DetailRow(label: AppStrings.labelContactPerson, value: FieldFormatter.orEmpty(quote.contactPerson)),
+                DetailRow(label: AppStrings.labelTerm, value: FieldFormatter.orEmpty(quote.term)),
+                DetailRow(label: AppStrings.labelEndUser, value: FieldFormatter.orEmpty(quote.endUser)),
               ]),
               const SizedBox(height: AppSpacing.lg),
               DetailRow(
                 label: AppStrings.labelSuContactPerson,
-                value: quote.suContactPerson,
+                value: FieldFormatter.orEmpty(quote.suContactPerson),
               ),
             ],
           ),
@@ -56,9 +57,9 @@ class DetailsTab extends StatelessWidget {
             title: AppStrings.sectionSalesmanPo,
             children: [
               DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelSalesman, value: quote.salesmanName),
-                DetailRow(label: AppStrings.labelBdm, value: quote.bdName),
-                DetailRow(label: AppStrings.labelPoNumber, value: quote.poNumber),
+                DetailRow(label: AppStrings.labelSalesman, value: FieldFormatter.orEmpty(quote.salesmanName)),
+                DetailRow(label: AppStrings.labelBdm, value: FieldFormatter.orEmpty(quote.bdName)),
+                DetailRow(label: AppStrings.labelPoNumber, value: FieldFormatter.orEmpty(quote.poNumber)),
                 DetailRow(
                   label: AppStrings.labelPoDate,
                   value: DateFormatter.display(quote.poDate),
@@ -83,7 +84,7 @@ class DetailsTab extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               DetailRow(
                 label: AppStrings.labelReason,
-                value: quote.reason,
+                value: FieldFormatter.orEmpty(quote.reason),
                 italic: true,
               ),
             ],
