@@ -49,7 +49,10 @@ class ApprovalCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _FieldCol(label: 'PRODUCT', value: quote.product),
+                Expanded(
+                  child: _FieldCol(label: 'PRODUCT', value: quote.product),
+                ),
+                const SizedBox(width: 16),
                 _FieldCol(
                   label: 'DATE',
                   value: DateFormatter.display(quote.quoteDate),
