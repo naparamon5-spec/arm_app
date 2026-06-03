@@ -145,14 +145,14 @@ class AppTextStyles {
   );
 
   static const TextStyle dashboardWelcome = TextStyle(
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     letterSpacing: -0.5,
   );
 
   static const TextStyle dashboardSubtitleText = TextStyle(
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
   );
@@ -177,7 +177,7 @@ class AppTextStyles {
   );
 
   static const TextStyle sectionHeader = TextStyle(
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );

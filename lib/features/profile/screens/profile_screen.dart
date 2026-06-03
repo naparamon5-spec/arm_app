@@ -126,6 +126,16 @@ class _Body extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Version 2.4.0',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),
@@ -183,7 +193,8 @@ class _ProfileInfoCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.email_outlined, size: 16, color: Color(0xFF9CA3AF)),
+              const Icon(Icons.email_outlined,
+                  size: 16, color: Color(0xFF9CA3AF)),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
@@ -203,7 +214,8 @@ class _ProfileInfoCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.badge_outlined, size: 16, color: Color(0xFF9CA3AF)),
+              const Icon(Icons.badge_outlined,
+                  size: 16, color: Color(0xFF9CA3AF)),
               const SizedBox(width: 6),
               Text(
                 userId,

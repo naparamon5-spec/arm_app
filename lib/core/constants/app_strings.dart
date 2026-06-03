@@ -57,7 +57,7 @@ class AppStrings {
   static const String labelContactPerson = 'Contact Person';
   static const String labelTerm = 'Term';
   static const String labelEndUser = 'End User';
-  static const String labelSuContactPerson = 'SU Contact Person';
+  static const String labelSuContactPerson = 'End User Contact Person';
   static const String labelSalesman = 'Salesman';
   static const String labelBdm = 'BDM';
   static const String labelPoNumber = 'PO Number';
