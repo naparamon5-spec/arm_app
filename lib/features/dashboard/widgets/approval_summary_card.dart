@@ -82,7 +82,9 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
     if (_focusNode.hasFocus && !_isInteracting) {
       _stopLoop();
       if (mounted) setState(() => _isInteracting = true);
-    } else if (!_focusNode.hasFocus && _inputController.text.isEmpty && _isInteracting) {
+    } else if (!_focusNode.hasFocus &&
+        _inputController.text.isEmpty &&
+        _isInteracting) {
       if (mounted) setState(() => _isInteracting = false);
       _startTypewriterLoop();
     }
@@ -104,7 +106,8 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       _timer = Timer(_typeDelay, () {
         if (!mounted || _isInteracting) return;
         setState(() {
-          _displayDigits = _targetDigits.substring(0, _displayDigits.length + 1);
+          _displayDigits =
+              _targetDigits.substring(0, _displayDigits.length + 1);
         });
         _typeNextChar();
       });
@@ -122,7 +125,8 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       _timer = Timer(_eraseDelay, () {
         if (!mounted || _isInteracting) return;
         setState(() {
-          _displayDigits = _displayDigits.substring(0, _displayDigits.length - 1);
+          _displayDigits =
+              _displayDigits.substring(0, _displayDigits.length - 1);
         });
         _eraseNextChar();
       });
@@ -154,8 +158,8 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
     }
 
     try {
-      final quote = await AppDependencies.instance.quoteRepository
-          .getQuoteFull(input);
+      final quote =
+          await AppDependencies.instance.quoteRepository.getQuoteFull(input);
       if (!mounted) return;
       Navigator.of(context).pushNamed(
         AppRouter.quoteDetail,
@@ -300,7 +304,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
           const SizedBox(height: 10),
           // Row 3: subtitle
           Text(
-            'Tap to review quote details and proceed with approval.',
+            'Tap, type the quote number and click search.',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w400,
