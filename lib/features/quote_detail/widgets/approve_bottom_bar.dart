@@ -66,12 +66,15 @@ class ApproveBottomBar extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.iconButtonBg,
+                // Light primary tint with a matching border so the button
+                // stands out against the near-white card background.
+                color: const Color(0xFFFBEAED),
                 borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+                border: Border.all(color: const Color(0x33C6324C)),
               ),
               child: const Icon(
                 Icons.print_outlined,
-                color: AppColors.textSecondary,
+                color: AppColors.primary,
                 size: 22,
               ),
             ),

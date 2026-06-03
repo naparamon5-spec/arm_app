@@ -77,13 +77,31 @@ class _RouteRow extends StatelessWidget {
   final QuoteModel quote;
   const _RouteRow({required this.quote});
 
-  /// "product_group_name · CUSTOMER_NAME" — drops either side when empty.
-  String get _productCustomerLabel {
+  static const TextStyle _pillTextStyle = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    color: Color(0xFFD32F2F),
+  );
+
+  /// Product and customer, separated by a centered dot. Drops either side
+  /// (and the dot) when empty.
+  List<Widget> _productCustomerParts() {
     final parts = [
       quote.product.toUpperCase(),
       quote.customer,
-    ].where((s) => s.trim().isNotEmpty);
-    return parts.join(' · ');
+    ].where((s) => s.trim().isNotEmpty).toList();
+
+    final children = <Widget>[];
+    for (var i = 0; i < parts.length; i++) {
+      if (i > 0) {
+        children.add(const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6),
+          child: Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
+        ));
+      }
+      children.add(Text(parts[i], maxLines: 1, style: _pillTextStyle));
+    }
+    return children;
   }
 
   @override
@@ -106,26 +124,12 @@ class _RouteRow extends StatelessWidget {
               border: Border.all(color: const Color(0xFFFFCDD2), width: 1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      _productCustomerLabel,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFD32F2F),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: _productCustomerParts(),
+              ),
             ),
           ),
           const Spacer(),
