@@ -61,7 +61,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
 
   String _randomDigits() {
     final rand = Random();
-    return List.generate(5, (_) => rand.nextInt(10).toString()).join();
+    return List.generate(6, (_) => rand.nextInt(10).toString()).join();
   }
 
   void _stopLoop() {
