@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required for all network access (API calls, login). Must live in the
+         main manifest so it is included in release builds; the debug manifest
+         only applies to debug/profile builds. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="ARM"
         android:name="${applicationName}"
