@@ -100,7 +100,8 @@ class _SearchBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: const Color(0xFFF4F7F8),
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.xs),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
@@ -190,7 +191,8 @@ class _QuoteList extends StatelessWidget {
 
     return ListView.builder(
       controller: controller.scrollController,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, AppSpacing.lg),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         if (index == controller.filteredQuotes.length) {
