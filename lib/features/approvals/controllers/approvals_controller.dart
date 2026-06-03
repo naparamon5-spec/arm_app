@@ -21,7 +21,21 @@ class ApprovalsController extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  List<QuoteModel> get filteredQuotes => _quotes;
+
+  /// Loaded quotes filtered by the current keyword (case-insensitive,
+  /// partial match across quote number, customer, salesman and product).
+  List<QuoteModel> get filteredQuotes {
+    if (_searchQuery.isEmpty) return _quotes;
+    final q = _searchQuery.toLowerCase();
+    return _quotes.where((quote) {
+      return quote.quoteNumber.toLowerCase().contains(q) ||
+          quote.customer.toLowerCase().contains(q) ||
+          quote.salesmanName.toLowerCase().contains(q) ||
+          quote.product.toLowerCase().contains(q) ||
+          quote.buGroup.toLowerCase().contains(q);
+    }).toList();
+  }
+
   String get searchQuery => _searchQuery;
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMoreData => _currentPage < _totalPages;
@@ -79,30 +93,24 @@ class ApprovalsController extends ChangeNotifier {
     }
   }
 
-  Future<void> search(String query) async {
+  /// Keyword search. Filters the already-loaded list instantly (no network
+  /// call), so typing any character — including a single digit — narrows the
+  /// results right away. See [filteredQuotes] for the matched fields.
+  void search(String query) {
     _searchQuery = query.trim();
-    await loadApprovals();
+    notifyListeners();
   }
 
   void clearSearch() {
     _searchQuery = '';
-    loadApprovals();
+    notifyListeners();
   }
 
   Future<dynamic> _fetchPage(int page) {
-    final q = _searchQuery;
     return _quoteRepo.getPendingQuotes(
       page: page,
       pageSize: ApiConfig.defaultPageSize,
-      quoteNumber: _looksLikeQuoteNumber(q) ? q : null,
-      customerName: _looksLikeQuoteNumber(q) ? null : (q.isEmpty ? null : q),
-      productGroupName: null,
     );
-  }
-
-  bool _looksLikeQuoteNumber(String q) {
-    if (q.isEmpty) return false;
-    return RegExp(r'^[#Q\d\-]', caseSensitive: false).hasMatch(q);
   }
 
   @override
