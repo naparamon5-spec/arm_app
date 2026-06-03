@@ -8,6 +8,11 @@ import '../widgets/main_screen.dart';
 class AppRouter {
   AppRouter._();
 
+  /// App-wide navigator, so non-widget code (e.g. the API client on session
+  /// expiry) can navigate without a BuildContext.
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   static const String splash = '/splash';
   static const String login = '/login';
   static const String main = '/main';

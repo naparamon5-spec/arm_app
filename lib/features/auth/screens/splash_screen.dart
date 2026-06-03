@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../core/di/app_dependencies.dart';
 import '../../../shared/navigation/app_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,9 +15,11 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Future.delayed(const Duration(milliseconds: 2500), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRouter.login);
-      }
+      if (!mounted) return;
+      final loggedIn = AppDependencies.instance.sessionService.isLoggedIn;
+      Navigator.of(context).pushReplacementNamed(
+        loggedIn ? AppRouter.dashboard : AppRouter.login,
+      );
     });
   }
 

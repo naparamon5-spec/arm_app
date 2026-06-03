@@ -9,7 +9,16 @@ import 'token_storage.dart';
 class ApiClient {
   final TokenStorage tokenStorage;
   late final Dio dio;
-  bool _isRefreshing = false;
+
+  /// A single in-flight refresh shared by all concurrent 401s, so that
+  /// overlapping requests (e.g. when returning from the background) wait for
+  /// one refresh instead of each kicking off its own and racing.
+  Future<bool>? _refreshFuture;
+
+  /// Invoked when the refresh token is rejected by the server (expired/revoked).
+  /// The session is truly over — wired by the DI layer to clear it and send the
+  /// user back to login. NOT called for transient network errors.
+  Future<void> Function()? onSessionExpired;
 
   ApiClient({required this.tokenStorage}) {
     dio = Dio(
@@ -61,12 +70,27 @@ class ApiClient {
     );
   }
 
-  Future<bool> _tryRefreshToken() async {
-    if (_isRefreshing) return false;
-    final refresh = await tokenStorage.refreshToken;
-    if (refresh == null || refresh.isEmpty) return false;
+  /// Proactively refresh the access token using the stored refresh token.
+  /// Safe to call on app start; coalesces with any in-flight refresh.
+  Future<bool> refreshSession() => _tryRefreshToken();
 
-    _isRefreshing = true;
+  /// Refreshes the access token, coalescing concurrent callers onto a single
+  /// request. Callers that arrive while a refresh is already running await the
+  /// same result and retry once it completes, instead of failing their request.
+  Future<bool> _tryRefreshToken() {
+    return _refreshFuture ??= _performRefresh().whenComplete(() {
+      _refreshFuture = null;
+    });
+  }
+
+  Future<bool> _performRefresh() async {
+    final refresh = await tokenStorage.refreshToken;
+    if (refresh == null || refresh.isEmpty) {
+      // Nothing to refresh with — the session cannot be recovered.
+      await _expireSession();
+      return false;
+    }
+
     try {
       final response = await dio.post(
         ApiPaths.authRefresh,
@@ -85,10 +109,30 @@ class ApiClient {
         userId: userId,
       );
       return true;
+    } on DioException catch (e) {
+      // A 401/403 means the refresh token is expired or revoked — the session
+      // is genuinely over, so log out. Network/timeout/5xx errors are transient
+      // and must NOT log the user out; let them retry.
+      final status = e.response?.statusCode;
+      if (status == 401 || status == 403) {
+        await _expireSession();
+      }
+      return false;
     } catch (_) {
       return false;
+    }
+  }
+
+  bool _expiring = false;
+
+  /// Fires the session-expired hook once, after clearing the in-flight refresh.
+  Future<void> _expireSession() async {
+    if (_expiring) return;
+    _expiring = true;
+    try {
+      await onSessionExpired?.call();
     } finally {
-      _isRefreshing = false;
+      _expiring = false;
     }
   }
 

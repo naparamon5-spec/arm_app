@@ -10,6 +10,10 @@ class SessionService {
   UserModel? _currentUser;
   bool _rememberDevice = true;
 
+  /// Refreshes the access token using the stored refresh token.
+  /// Wired by the DI layer to [ApiClient.refreshSession].
+  Future<bool> Function()? refreshTokens;
+
   SessionService({required this.tokenStorage});
 
   UserModel? get currentUser => _currentUser;
@@ -20,14 +24,32 @@ class SessionService {
 
   Future<void> restoreSession() async {
     final userId = await tokenStorage.userId;
-    final accessToken = await tokenStorage.accessToken;
-    if (userId == null ||
-        userId.isEmpty ||
-        accessToken == null ||
-        accessToken.isEmpty) {
+    var accessToken = await tokenStorage.accessToken;
+    final refreshToken = await tokenStorage.refreshToken;
+
+    if (userId == null || userId.isEmpty) {
       _currentUser = null;
       return;
     }
+
+    // An expired access token is NOT a logout: it still identifies the user,
+    // and the API client refreshes it lazily on the first request. We only need
+    // a network refresh at startup when there's no access token at all but we
+    // still hold a refresh token — otherwise startup stays offline-friendly and
+    // instant.
+    final hasRefresh = refreshToken != null && refreshToken.isNotEmpty;
+    final hasAccess = accessToken != null && accessToken.isNotEmpty;
+    if (!hasAccess) {
+      // No usable access token. Try to recover via the refresh token; if that
+      // fails (no refresh token, or it's expired/revoked), the session is over.
+      final refreshed = hasRefresh && (await refreshTokens?.call() ?? false);
+      accessToken = refreshed ? await tokenStorage.accessToken : null;
+      if (accessToken == null || accessToken.isEmpty) {
+        await clearSession();
+        return;
+      }
+    }
+
     _currentUser = _userFromToken(userId, accessToken);
   }
 

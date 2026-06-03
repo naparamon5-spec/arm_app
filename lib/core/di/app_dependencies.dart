@@ -5,6 +5,7 @@ import '../../core/network/token_storage.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/quote_repository.dart';
 import '../../services/session_service.dart';
+import '../../shared/navigation/app_router.dart';
 
 /// Single place to construct and access API-backed services.
 class AppDependencies {
@@ -40,5 +41,18 @@ class AppDependencies {
   );
 
   /// Call on app start to restore session from secure storage.
-  Future<void> initialize() => sessionService.restoreSession();
+  Future<void> initialize() {
+    // Let the session restore step refresh an expired access token on startup.
+    sessionService.refreshTokens = apiClient.refreshSession;
+    // When the refresh token is rejected (expired/revoked), end the session and
+    // send the user back to login.
+    apiClient.onSessionExpired = () async {
+      await sessionService.clearSession();
+      AppRouter.navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRouter.login,
+        (route) => false,
+      );
+    };
+    return sessionService.restoreSession();
+  }
 }
