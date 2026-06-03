@@ -125,6 +125,7 @@ class QuoteMapper {
     final map = asJsonMap(json);
     return QuoteItemModel(
       lineType: map.str(['line_type', 'lineType', 'LINE_TYPE']),
+      productCode: map.str(['product_code', 'productCode', 'PRODUCT_CODE']),
       partNumber: map.str(['part_number', 'partNumber', 'PART_NO']),
       description: map.str(['description', 'item_desc', 'DESCRIPTION']),
       itemNumber: map.str(['item_number', 'itemNumber', 'item_no']),

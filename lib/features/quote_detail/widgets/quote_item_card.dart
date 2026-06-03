@@ -40,8 +40,6 @@ class _QuoteItemCardState extends State<QuoteItemCard> {
           if (_expanded) ...[
             const Divider(height: 1, color: AppColors.divider),
             _FieldGrid(item: item),
-            const Divider(height: 1, color: AppColors.divider),
-            _Footer(item: item),
           ],
         ],
       ),
@@ -68,30 +66,60 @@ class _Header extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Left — black badge: part_number on top, item_number below
+            _ProductBadge(
+              productCode: item.productCode,
+              partNumber: item.partNumber,
+              itemNumber: item.itemNumber,
+            ),
+            // Center — quantity
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _LineTypeBadge(lineType: item.lineType),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        item.partNumber,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'QTY',
+                      style: AppTextStyles.metricLabel.copyWith(
+                        color: AppColors.textMuted,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(item.description, style: AppTextStyles.heading3),
-                ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${item.quantity}',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+            // Right — unit price
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'UNIT PRICE',
+                  style: AppTextStyles.metricLabel.copyWith(
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  CurrencyFormatter.usd(item.unitPrice),
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: AppSpacing.sm),
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
               color: AppColors.textMuted,
@@ -103,30 +131,66 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _LineTypeBadge extends StatelessWidget {
-  final String lineType;
-  const _LineTypeBadge({required this.lineType});
+class _ProductBadge extends StatelessWidget {
+  final String productCode;
+  final String partNumber;
+  final String itemNumber;
+
+  const _ProductBadge({
+    required this.productCode,
+    required this.partNumber,
+    required this.itemNumber,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      child: Text(
-        lineType,
-        style: const TextStyle(
-          color: AppColors.textLight,
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.4,
-        ),
-      ),
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (productCode.isNotEmpty) ...[
+            const Text(
+              'PRODUCT CODE',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              productCode,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+          ],
+          if (itemNumber.isNotEmpty) ...[
+            const Text(
+              'ITEM NUMBER',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              itemNumber,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
     );
   }
 }
@@ -138,11 +202,8 @@ class _FieldGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fields = [
-      (AppStrings.itemNumber, item.itemNumber),
       (AppStrings.itemSite, item.site),
-      (AppStrings.itemQty, '${item.quantity}'),
       (AppStrings.itemListGlp, CurrencyFormatter.usd(item.listGlp)),
-      (AppStrings.itemUnitPrice, CurrencyFormatter.usd(item.unitPrice)),
       (AppStrings.itemExtPrice, CurrencyFormatter.usd(item.extendedPrice)),
       (AppStrings.itemFreight, CurrencyFormatter.usd(item.freight)),
       (AppStrings.itemVat, CurrencyFormatter.usd(item.vat)),
@@ -190,46 +251,3 @@ class _FieldGrid extends StatelessWidget {
   }
 }
 
-class _Footer extends StatelessWidget {
-  final QuoteItemModel item;
-  const _Footer({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.md,
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(AppSpacing.xs),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Text(
-              item.standard,
-              style: AppTextStyles.labelBold.copyWith(
-                color: AppColors.textSecondary,
-                fontSize: 10,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            item.partNumber,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textMuted,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

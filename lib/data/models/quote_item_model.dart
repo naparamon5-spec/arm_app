@@ -1,5 +1,6 @@
 class QuoteItemModel {
   final String lineType;
+  final String productCode;
   final String partNumber;
   final String description;
   final String itemNumber;
@@ -16,6 +17,7 @@ class QuoteItemModel {
 
   const QuoteItemModel({
     required this.lineType,
+    this.productCode = '',
     required this.partNumber,
     required this.description,
     required this.itemNumber,

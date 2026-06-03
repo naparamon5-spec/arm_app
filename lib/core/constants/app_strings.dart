@@ -53,7 +53,7 @@ class AppStrings {
   static const String labelProduct = 'Product';
   static const String labelQuoteType = 'Quote Type';
   static const String labelQuoteDate = 'Quote Date';
-  static const String labelCustomer = 'CUSTOMER_NAME';
+  static const String labelCustomer = 'Customer Name';
   static const String labelContactPerson = 'Contact Person';
   static const String labelTerm = 'Term';
   static const String labelEndUser = 'End User';

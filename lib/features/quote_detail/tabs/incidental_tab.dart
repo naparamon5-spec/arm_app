@@ -27,7 +27,6 @@ class IncidentalTab extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 12),
             _SectionHeader(),
             _ColumnHeaders(),
             ...quote.incidentals.map(
