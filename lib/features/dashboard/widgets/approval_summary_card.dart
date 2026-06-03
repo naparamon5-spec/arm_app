@@ -227,13 +227,10 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
                     ? TextField(
                         focusNode: _focusNode,
                         controller: _inputController,
-                        textCapitalization: TextCapitalization.characters,
+                        keyboardType: TextInputType.number,
+                        // Quote numbers are digits only — strip letters/symbols.
                         inputFormatters: [
-                          TextInputFormatter.withFunction(
-                            (oldVal, newVal) => newVal.copyWith(
-                              text: newVal.text.toUpperCase(),
-                            ),
-                          ),
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
                         style: const TextStyle(
                           fontSize: 28,
