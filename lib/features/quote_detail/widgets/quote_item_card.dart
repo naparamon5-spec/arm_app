@@ -68,56 +68,34 @@ class _Header extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Left — black badge: part_number on top, item_number below
-            _ProductBadge(
-              productCode: item.productCode,
-              partNumber: item.partNumber,
-              itemNumber: item.itemNumber,
+            // Left — product code / item number. Fixed share so the QTY and
+            // UNIT PRICE columns stay aligned across rows even when the product
+            // code is long.
+            Expanded(
+              flex: 5,
+              child: _ProductBadge(
+                productCode: item.productCode,
+                partNumber: item.partNumber,
+                itemNumber: item.itemNumber,
+              ),
             ),
             // Center — quantity
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'QTY',
-                      style: AppTextStyles.metricLabel.copyWith(
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${item.quantity}',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
+              flex: 2,
+              child: _Metric(
+                label: 'QTY',
+                value: '${item.quantity}',
+                alignment: CrossAxisAlignment.center,
               ),
             ),
             // Right — unit price
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'UNIT PRICE',
-                  style: AppTextStyles.metricLabel.copyWith(
-                    color: AppColors.textMuted,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  CurrencyFormatter.usd(item.unitPrice),
-                  style: AppTextStyles.bodySmall.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
+            Expanded(
+              flex: 3,
+              child: _Metric(
+                label: 'UNIT PRICE',
+                value: CurrencyFormatter.usd(item.unitPrice),
+                alignment: CrossAxisAlignment.end,
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Icon(
@@ -127,6 +105,48 @@ class _Header extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A small label-over-value column (QTY / UNIT PRICE) with a configurable
+/// horizontal alignment so columns line up consistently across rows.
+class _Metric extends StatelessWidget {
+  final String label;
+  final String value;
+  final CrossAxisAlignment alignment;
+
+  const _Metric({
+    required this.label,
+    required this.value,
+    required this.alignment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textAlign =
+        alignment == CrossAxisAlignment.end ? TextAlign.end : TextAlign.center;
+    return Column(
+      crossAxisAlignment: alignment,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          textAlign: textAlign,
+          style: AppTextStyles.metricLabel.copyWith(
+            color: AppColors.textMuted,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          textAlign: textAlign,
+          style: AppTextStyles.bodySmall.copyWith(
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 }
