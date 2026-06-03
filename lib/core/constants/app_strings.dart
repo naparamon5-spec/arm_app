@@ -72,7 +72,7 @@ class AppStrings {
   static const String approvalsLabel = 'APPROVAL';
   static const String metricBuyPrice = 'BUY PRICE';
   static const String metricIncidental = 'INCIDENTAL';
-  static const String metricGpAmt = 'GP AMT';
+  static const String metricGpAmt = 'GP AMOUNT';
   static const String metricGpPct = 'GP %';
 
   // Item fields
