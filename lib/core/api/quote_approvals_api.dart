@@ -131,7 +131,10 @@ class QuoteApprovalsApi {
       final response = await _client.get<dynamic>(
         ApiPaths.quoteCpoFiles(_encoded(quoteNumber)),
       );
-      return _asRowList(response.data);
+      final data = response.data;
+      // The endpoint returns either a bare array or a { "files": [...] } wrapper.
+      final rows = data is Map ? (data['files'] ?? data['data']) : data;
+      return _asRowList(rows);
     } on DioException catch (e) {
       _client.throwFromDio(e, 'Failed to retrieve CPO files');
     }

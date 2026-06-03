@@ -1,4 +1,5 @@
 
+import '../../core/config/api_config.dart';
 import '../../core/utils/json_map_extensions.dart';
 import '../models/attachment_model.dart';
 import '../models/incidental_model.dart';
@@ -154,17 +155,64 @@ class QuoteMapper {
 
   static AttachmentModel _attachmentFromJson(Map<String, dynamic> json) {
     final map = asJsonMap(json);
-    final fileName = map.str(['file_name', 'fileName', 'filename', 'name']);
-    final ext = fileName.contains('.')
-        ? fileName.split('.').last.toLowerCase()
-        : map.str(['file_type', 'fileType'], 'file');
+    // The stored name is a hashed filename used to locate the file on disk;
+    // client_name is the human-readable name the user uploaded — show that.
+    final storedName = map.str(['file_name', 'fileName', 'filename', 'name']);
+    final clientName = map.str(['client_name', 'clientName', 'original_name']);
+    final displayName = clientName.isNotEmpty ? clientName : storedName;
+
+    // Derive a short extension for the icon ("PDF") from the display name, then
+    // the stored name, then the MIME type ("application/pdf" -> "pdf").
+    final ext = _extensionOf(displayName) ??
+        _extensionOf(storedName) ??
+        _extFromMime(map.str(['file_type', 'fileType']));
+
     return AttachmentModel(
-      fileName: fileName,
-      fileType: map.str(['file_type', 'fileType'], ext),
-      fileSizeKb: map.dbl(['file_size_kb', 'fileSizeKb', 'size_kb']),
-      uploadedDate: map.date(['uploaded_date', 'uploadedDate', 'date_uploaded']),
-      url: map.str(['url', 'file_url', 'path', 'file_path']),
+      fileName: displayName,
+      fileType: ext,
+      fileSizeKb: map.dbl(
+        ['file_size', 'file_size_kb', 'fileSize', 'fileSizeKb', 'size_kb'],
+      ),
+      uploadedDate: map.date(
+        ['uploaded_date', 'uploadedDate', 'date_uploaded', 'upload_date'],
+      ),
+      url: _fileUrl(map, storedName),
     );
+  }
+
+  /// Lowercased file extension from a name, or null if there isn't one.
+  static String? _extensionOf(String name) {
+    final dot = name.lastIndexOf('.');
+    if (dot < 0 || dot == name.length - 1) return null;
+    return name.substring(dot + 1).toLowerCase();
+  }
+
+  /// Subtype of a MIME string ("application/pdf" -> "pdf"), or "file".
+  static String _extFromMime(String mime) {
+    if (mime.isEmpty) return 'file';
+    final slash = mime.lastIndexOf('/');
+    final sub = slash >= 0 ? mime.substring(slash + 1) : mime;
+    return sub.split(';').first.trim().toLowerCase();
+  }
+
+  /// Builds a viewable URL for an attachment. Prefers an explicit http(s) URL;
+  /// otherwise turns the server file path (e.g. "C:/uploads/cpo_file/<name>",
+  /// served statically at "/uploads/cpo_file/<name>") into an absolute URL.
+  static String _fileUrl(Map<String, dynamic> map, String storedName) {
+    final explicit = map.str(['url', 'file_url']);
+    if (explicit.startsWith('http')) return explicit;
+
+    var path = map.str(['full_path']);
+    if (path.isEmpty) {
+      final dir = map.str(['file_path']);
+      path = dir.isEmpty ? storedName : '$dir$storedName';
+    }
+    // Normalise separators and drop a Windows drive prefix (e.g. "C:").
+    var rel = path.replaceAll('\\', '/').replaceFirst(RegExp(r'^[A-Za-z]:'), '');
+    if (!rel.startsWith('/')) rel = '/$rel';
+    // Encode each path segment so spaces/special chars produce a valid URL.
+    final encoded = rel.split('/').map(Uri.encodeComponent).join('/');
+    return '${ApiConfig.baseUrl}$encoded';
   }
 
   /// GP% is returned as a fraction (`0.05` = 5%) under `gp_perc` /

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/utils/date_formatter.dart';
 import '../../../data/models/attachment_model.dart';
 
 class FileAttachmentTile extends StatelessWidget {
@@ -45,7 +44,7 @@ class FileAttachmentTile extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    '${_formattedSize(attachment.fileSizeKb)}  •  ${DateFormatter.display(attachment.uploadedDate)}',
+                    _subtitle(),
                     style: AppTextStyles.bodySmall,
                   ),
                 ],
@@ -62,9 +61,17 @@ class FileAttachmentTile extends StatelessWidget {
     );
   }
 
+  String _subtitle() {
+    final type = attachment.fileType.toUpperCase();
+    final size = _formattedSize(attachment.fileSizeKb);
+    if (size.isEmpty) return type;
+    return '$type  •  $size';
+  }
+
   String _formattedSize(double kb) {
+    if (kb <= 0) return '';
     if (kb >= 1024) return '${(kb / 1024).toStringAsFixed(1)} MB';
-    return '${kb.toStringAsFixed(0)} KB';
+    return '${kb.toStringAsFixed(1)} KB';
   }
 }
 
