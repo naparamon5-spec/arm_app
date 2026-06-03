@@ -11,6 +11,7 @@ import '../tabs/files_tab.dart';
 import '../tabs/incidental_tab.dart';
 import '../tabs/items_tab.dart';
 import '../widgets/approve_bottom_bar.dart';
+import '../widgets/print_preview_sheet.dart';
 import '../widgets/quote_header_card.dart';
 
 class QuoteDetailScreen extends StatefulWidget {
@@ -204,7 +205,8 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
                   ),
                   ApproveBottomBar(
                     onApprove: _onApprove,
-                    onPrint: () {},
+                    onPrint: (option) =>
+                        PrintPreviewSheet.show(context, quote, option: option),
                   ),
                 ],
               ),

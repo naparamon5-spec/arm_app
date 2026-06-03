@@ -64,6 +64,7 @@ class AppStrings {
   static const String labelPoDate = 'PO Date';
   static const String labelForex = 'FOREX';
   static const String labelAllowedUp = 'Allowed Up %';
+  static const String labelCurrency = 'Currency';
   static const String labelReason = 'Reason';
 
   // Metrics

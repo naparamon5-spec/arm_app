@@ -82,10 +82,24 @@ class DetailsTab extends StatelessWidget {
                 ),
               ]),
               const SizedBox(height: AppSpacing.lg),
-              DetailRow(
-                label: AppStrings.labelReason,
-                value: FieldFormatter.orEmpty(quote.reason),
-                italic: true,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: DetailRow(
+                      label: AppStrings.labelReason,
+                      value: FieldFormatter.orEmpty(quote.reason),
+                      italic: true,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: DetailRow(
+                      label: AppStrings.labelCurrency,
+                      value: FieldFormatter.orEmpty(quote.currencyId),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

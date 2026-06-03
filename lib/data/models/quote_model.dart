@@ -30,6 +30,8 @@ class QuoteModel {
   final double gpPercentage;
   final double forex;
   final double allowedUpPercent;
+  /// Currency code from API (`currency_id`), e.g. "Php".
+  final String currencyId;
   final String reason;
   final QuoteStatus status;
   final List<QuoteItemModel> items;
@@ -63,6 +65,7 @@ class QuoteModel {
     required this.gpPercentage,
     required this.forex,
     required this.allowedUpPercent,
+    this.currencyId = '',
     required this.reason,
     required this.status,
     required this.items,
@@ -132,6 +135,7 @@ class QuoteModel {
       gpPercentage: pickNum(gpPercentage, summary.gpPercentage),
       forex: pickNum(forex, summary.forex),
       allowedUpPercent: pickNum(allowedUpPercent, summary.allowedUpPercent),
+      currencyId: pick(currencyId, summary.currencyId),
       reason: pick(reason, summary.reason),
       status: status,
       items: items,

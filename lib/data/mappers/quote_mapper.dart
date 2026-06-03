@@ -106,6 +106,7 @@ class QuoteMapper {
         'margin', // detail
         'allowed_up_percent', 'allowedUpPercent', 'markup_percent',
       ]),
+      currencyId: map.str(['currency_id', 'currencyId', 'currency']),
       reason: map.str(['reason', 'remarks', 'checking_remarks']),
       status: _statusFrom(map.str(['status', 'checking', 'approval_status'])),
       items: items ?? [],

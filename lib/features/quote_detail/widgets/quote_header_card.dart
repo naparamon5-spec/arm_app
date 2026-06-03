@@ -95,29 +95,33 @@ class _RouteRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF0F0),
-              border: Border.all(color: const Color(0xFFFFCDD2), width: 1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
-                const SizedBox(width: 4),
-                Text(
-                  _productCustomerLabel,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFD32F2F),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF0F0),
+                border: Border.all(color: const Color(0xFFFFCDD2), width: 1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      _productCustomerLabel,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFD32F2F),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const Spacer(),
@@ -139,10 +143,23 @@ class _MetricsCard extends StatelessWidget {
   final QuoteModel quote;
   const _MetricsCard({required this.quote});
 
+  /// Whether the quote's native currency is PHP (`currency_id` = "Php").
+  /// When true the PHP value is shown on top and USD below; otherwise USD
+  /// stays on top with PHP below.
+  bool get _isPhp => quote.currencyId.toUpperCase().contains('PHP');
+
+  /// Primary (top) value for a USD-denominated [amount].
+  String _primary(double amount) => _isPhp
+      ? CurrencyFormatter.php(amount * quote.forex)
+      : CurrencyFormatter.usd(amount);
+
+  /// Secondary (bottom) value for a USD-denominated [amount].
+  String _sub(double amount) => _isPhp
+      ? CurrencyFormatter.usd(amount)
+      : CurrencyFormatter.php(amount * quote.forex);
+
   @override
   Widget build(BuildContext context) {
-    final rate = quote.forex;
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.lg,
@@ -158,8 +175,8 @@ class _MetricsCard extends StatelessWidget {
                 child: _MetricCard(
                   child: MetricTile(
                     label: AppStrings.metricSelling,
-                    value: CurrencyFormatter.usd(quote.billingAmount),
-                    subValue: CurrencyFormatter.php(quote.billingAmount * rate),
+                    value: _primary(quote.billingAmount),
+                    subValue: _sub(quote.billingAmount),
                   ),
                 ),
               ),
@@ -168,8 +185,8 @@ class _MetricsCard extends StatelessWidget {
                 child: _MetricCard(
                   child: MetricTile(
                     label: AppStrings.metricBuyPrice,
-                    value: CurrencyFormatter.usd(quote.buyPrice),
-                    subValue: CurrencyFormatter.php(quote.buyPrice * rate),
+                    value: _primary(quote.buyPrice),
+                    subValue: _sub(quote.buyPrice),
                   ),
                 ),
               ),
@@ -178,8 +195,8 @@ class _MetricsCard extends StatelessWidget {
                 child: _MetricCard(
                   child: MetricTile(
                     label: AppStrings.metricIncidental,
-                    value: CurrencyFormatter.usd(quote.incidentalAmount),
-                    subValue: CurrencyFormatter.php(quote.incidentalAmount * rate),
+                    value: _primary(quote.incidentalAmount),
+                    subValue: _sub(quote.incidentalAmount),
                   ),
                 ),
               ),
@@ -194,8 +211,8 @@ class _MetricsCard extends StatelessWidget {
                 child: _MetricCard(
                   child: MetricTile(
                     label: AppStrings.metricGpAmt,
-                    value: CurrencyFormatter.usd(quote.gpAmount),
-                    subValue: CurrencyFormatter.php(quote.gpAmount * rate),
+                    value: _primary(quote.gpAmount),
+                    subValue: _sub(quote.gpAmount),
                     valueColor: quote.gpAmount >= 0
                         ? AppColors.textPrimary
                         : AppColors.negativeValue,

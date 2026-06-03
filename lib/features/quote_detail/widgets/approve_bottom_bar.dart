@@ -3,10 +3,13 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
+import 'print_options_dialog.dart';
+
+enum PrintOption { php, dollar, costing }
 
 class ApproveBottomBar extends StatelessWidget {
   final VoidCallback onApprove;
-  final VoidCallback onPrint;
+  final ValueChanged<PrintOption> onPrint;
 
   const ApproveBottomBar({
     super.key,
@@ -54,14 +57,19 @@ class ApproveBottomBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.iconButtonBg,
-              borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
-            ),
-            child: IconButton(
-              onPressed: onPrint,
-              icon: const Icon(
+          GestureDetector(
+            onTap: () async {
+              final option = await PrintOptionsDialog.show(context);
+              if (option != null) onPrint(option);
+            },
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: AppColors.iconButtonBg,
+                borderRadius: BorderRadius.circular(AppSpacing.buttonRadius),
+              ),
+              child: const Icon(
                 Icons.print_outlined,
                 color: AppColors.textSecondary,
                 size: 22,
