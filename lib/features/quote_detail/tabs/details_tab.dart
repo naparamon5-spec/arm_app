@@ -74,7 +74,7 @@ class DetailsTab extends StatelessWidget {
               DetailRowGrid(rows: [
                 DetailRow(
                   label: AppStrings.labelForex,
-                  value: '\$${quote.forex.toStringAsFixed(2)}',
+                  value: '\$${quote.forex}',
                 ),
                 DetailRow(
                   label: AppStrings.labelAllowedUp,

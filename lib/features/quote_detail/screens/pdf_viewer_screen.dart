@@ -110,7 +110,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
         actions: [
           if (_pdfBytes != null)
             IconButton(
-              icon: const Icon(Icons.download_outlined),
+              icon: const Icon(Icons.file_download_outlined),
               tooltip: 'Save PDF',
               onPressed: _savePdf,
             ),
