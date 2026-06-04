@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/config/api_config.dart';
@@ -12,6 +14,7 @@ class ApprovalsController extends ChangeNotifier {
   String? _errorMessage;
   List<QuoteModel> _quotes = [];
   String _searchQuery = '';
+  Timer? _debounce;
 
   int _currentPage = 1;
   int _totalPages = 1;
@@ -21,24 +24,13 @@ class ApprovalsController extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
-  /// Loaded quotes filtered by the current keyword (case-insensitive,
-  /// partial match across quote number, customer, salesman and product).
-  List<QuoteModel> get filteredQuotes {
-    if (_searchQuery.isEmpty) return _quotes;
-    final q = _searchQuery.toLowerCase();
-    return _quotes.where((quote) {
-      return quote.quoteNumber.toLowerCase().contains(q) ||
-          quote.customer.toLowerCase().contains(q) ||
-          quote.salesmanName.toLowerCase().contains(q) ||
-          quote.product.toLowerCase().contains(q) ||
-          quote.buGroup.toLowerCase().contains(q);
-    }).toList();
-  }
-
   String get searchQuery => _searchQuery;
   bool get isLoadingMore => _isLoadingMore;
-  bool get hasMoreData => _currentPage < _totalPages;
+
+  /// Load-more only applies during normal (non-search) browsing.
+  bool get hasMoreData => _searchQuery.isEmpty && _currentPage < _totalPages;
+
+  List<QuoteModel> get filteredQuotes => _quotes;
 
   ApprovalsController() {
     scrollController.addListener(() {
@@ -56,10 +48,28 @@ class ApprovalsController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _fetchPage(1);
-      _quotes = result.data;
-      _currentPage = result.page;
-      _totalPages = result.totalPages;
+      if (_searchQuery.isEmpty) {
+        final result = await _quoteRepo.getPendingQuotes(
+          page: 1,
+          pageSize: ApiConfig.defaultPageSize,
+        );
+        _quotes = result.data;
+        _currentPage = result.page;
+        _totalPages = result.totalPages;
+      } else if (int.tryParse(_searchQuery) != null) {
+        // Numeric → exact quote_number match
+        final result = await _quoteRepo.getPendingQuotes(
+          page: 1,
+          pageSize: 100,
+          quoteNumber: _searchQuery,
+        );
+        _quotes = result.data;
+        _totalPages = 1;
+      } else {
+        // Text → fetch from 3 sources in parallel, merge, filter client-side
+        _quotes = await _textSearch(_searchQuery.toLowerCase());
+        _totalPages = 1;
+      }
     } on ApiException catch (e) {
       _errorMessage = e.message;
       _quotes = [];
@@ -72,6 +82,50 @@ class ApprovalsController extends ChangeNotifier {
     }
   }
 
+  /// Fires 3 API calls in parallel (customer_name, product_group_name,
+  /// and an unfiltered batch), merges by quote number, then filters
+  /// client-side to include salesman name matches.
+  Future<List<QuoteModel>> _textSearch(String query) async {
+    final batches = await Future.wait([
+      _safeFetch(customerName: query, pageSize: 200),
+      _safeFetch(productGroupName: query, pageSize: 200),
+      _safeFetch(pageSize: 500),
+    ]);
+
+    final merged = <String, QuoteModel>{};
+    for (final batch in batches) {
+      for (final q in batch) {
+        merged[q.quoteNumber] = q;
+      }
+    }
+
+    return merged.values.where((q) {
+      return q.quoteNumber.toLowerCase().contains(query) ||
+          q.customer.toLowerCase().contains(query) ||
+          q.product.toLowerCase().contains(query) ||
+          q.salesmanName.toLowerCase().contains(query) ||
+          q.buGroup.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  Future<List<QuoteModel>> _safeFetch({
+    String? customerName,
+    String? productGroupName,
+    int pageSize = ApiConfig.defaultPageSize,
+  }) async {
+    try {
+      final result = await _quoteRepo.getPendingQuotes(
+        page: 1,
+        pageSize: pageSize,
+        customerName: customerName,
+        productGroupName: productGroupName,
+      );
+      return result.data;
+    } catch (_) {
+      return [];
+    }
+  }
+
   Future<void> loadMoreQuotes() async {
     if (_isLoadingMore || !hasMoreData || _isLoading) return;
     _isLoadingMore = true;
@@ -79,7 +133,10 @@ class ApprovalsController extends ChangeNotifier {
 
     try {
       final nextPage = _currentPage + 1;
-      final result = await _fetchPage(nextPage);
+      final result = await _quoteRepo.getPendingQuotes(
+        page: nextPage,
+        pageSize: ApiConfig.defaultPageSize,
+      );
       _quotes = [..._quotes, ...result.data];
       _currentPage = result.page;
       _totalPages = result.totalPages;
@@ -93,28 +150,24 @@ class ApprovalsController extends ChangeNotifier {
     }
   }
 
-  /// Keyword search. Filters the already-loaded list instantly (no network
-  /// call), so typing any character — including a single digit — narrows the
-  /// results right away. See [filteredQuotes] for the matched fields.
   void search(String query) {
     _searchQuery = query.trim();
     notifyListeners();
+
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), loadApprovals);
   }
 
   void clearSearch() {
+    _debounce?.cancel();
     _searchQuery = '';
     notifyListeners();
-  }
-
-  Future<dynamic> _fetchPage(int page) {
-    return _quoteRepo.getPendingQuotes(
-      page: page,
-      pageSize: ApiConfig.defaultPageSize,
-    );
+    loadApprovals();
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     scrollController.dispose();
     super.dispose();
   }

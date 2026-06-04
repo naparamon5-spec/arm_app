@@ -57,6 +57,7 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
               _SearchBar(
                 controller: _searchController,
                 onChanged: (v) => context.read<ApprovalsController>().search(v),
+                onClear: () => context.read<ApprovalsController>().clearSearch(),
               ),
               _SectionHeader(count: controller.filteredQuotes.length),
               Expanded(child: _QuoteList(controller: controller)),
@@ -93,8 +94,13 @@ class _ShimmerList extends StatelessWidget {
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
 
-  const _SearchBar({required this.controller, required this.onChanged});
+  const _SearchBar({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +128,7 @@ class _SearchBar extends StatelessWidget {
                       size: 18, color: AppColors.textMuted),
                   onPressed: () {
                     controller.clear();
-                    onChanged('');
+                    onClear();
                   },
                 )
               : null,
