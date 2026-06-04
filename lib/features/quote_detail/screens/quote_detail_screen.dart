@@ -11,8 +11,8 @@ import '../tabs/files_tab.dart';
 import '../tabs/incidental_tab.dart';
 import '../tabs/items_tab.dart';
 import '../widgets/approve_bottom_bar.dart';
-import '../widgets/print_preview_sheet.dart';
 import '../widgets/quote_header_card.dart';
+import 'pdf_viewer_screen.dart';
 
 class QuoteDetailScreen extends StatefulWidget {
   final QuoteModel quote;
@@ -66,6 +66,33 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
             child: const Text('Continue'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _openPdf(BuildContext context, QuoteModel quote, PrintOption option) {
+    final (type, title) = switch (option) {
+      PrintOption.php => (
+          'print-php',
+          'Quote #${quote.quoteNumber} (PHP)',
+        ),
+      PrintOption.dollar => (
+          'print-usd',
+          'Quote #${quote.quoteNumber} (USD)',
+        ),
+      PrintOption.costing => (
+          'print-costing',
+          'Costing Sheet #${quote.quoteNumber}',
+        ),
+    };
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PdfViewerScreen(
+          quoteNumber: quote.quoteNumber,
+          type: type,
+          title: title,
+        ),
       ),
     );
   }
@@ -205,8 +232,7 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
                   ),
                   ApproveBottomBar(
                     onApprove: _onApprove,
-                    onPrint: (option) =>
-                        PrintPreviewSheet.show(context, quote, option: option),
+                    onPrint: (option) => _openPdf(context, quote, option),
                   ),
                 ],
               ),
