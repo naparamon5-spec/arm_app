@@ -75,8 +75,11 @@ class QuoteModel {
     this.checking = '',
   });
 
+  /// Approver remarks are mandatory when the quote has a negative GP — either
+  /// because the GP percentage is below zero or the API flags the quote as
+  /// `checking = 'NEGATIVE GP'`.
   bool get requiresRemarksOnApprove =>
-      checking.toUpperCase().contains('NEGATIVE GP');
+      gpPercentage < 0 || checking.toUpperCase().contains('NEGATIVE GP');
 
   /// Safely extracts a String from a value that may be a nested Map
   /// (e.g. the API returns `customer` as `{CUSTOMER_NAME: "Foo"}`).
@@ -87,6 +90,10 @@ class QuoteModel {
       // salesman object
       return value['FULL_NAME']?.toString()
           ?? value['full_name']?.toString()
+          // end-user object
+          ?? value['End_User_Name']?.toString()
+          ?? value['end_user_name']?.toString()
+          ?? value['END_USER_NAME']?.toString()
           // customer object
           ?? value['CUSTOMER_NAME']?.toString()
           ?? value['customer_name']?.toString()

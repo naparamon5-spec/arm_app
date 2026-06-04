@@ -74,7 +74,7 @@ class DetailsTab extends StatelessWidget {
               DetailRowGrid(rows: [
                 DetailRow(
                   label: AppStrings.labelForex,
-                  value: '₱${quote.forex.toStringAsFixed(2)}',
+                  value: '\$${quote.forex.toStringAsFixed(2)}',
                 ),
                 DetailRow(
                   label: AppStrings.labelAllowedUp,
@@ -88,7 +88,13 @@ class DetailsTab extends StatelessWidget {
                   Expanded(
                     child: DetailRow(
                       label: AppStrings.labelReason,
-                      value: FieldFormatter.orEmpty(quote.reason),
+                      // Show the reason when present; otherwise fall back to the
+                      // checking status.
+                      value: FieldFormatter.orEmpty(
+                        quote.reason.trim().isNotEmpty
+                            ? quote.reason
+                            : quote.checking,
+                      ),
                       italic: true,
                     ),
                   ),

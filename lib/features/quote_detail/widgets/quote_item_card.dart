@@ -93,7 +93,7 @@ class _Header extends StatelessWidget {
               flex: 3,
               child: _Metric(
                 label: 'UNIT PRICE',
-                value: CurrencyFormatter.usd(item.unitPrice),
+                value: CurrencyFormatter.php(item.unitPrice),
                 alignment: CrossAxisAlignment.end,
               ),
             ),
@@ -224,9 +224,11 @@ class _FieldGrid extends StatelessWidget {
     final fields = [
       (AppStrings.itemSite, item.site),
       (AppStrings.itemListGlp, CurrencyFormatter.usd(item.listGlp)),
-      (AppStrings.itemExtPrice, CurrencyFormatter.usd(item.extendedPrice)),
+      (AppStrings.itemExtPrice, CurrencyFormatter.php(item.extendedPrice)),
       (AppStrings.itemFreight, CurrencyFormatter.usd(item.freight)),
+      (AppStrings.itemFreightPercent, CurrencyFormatter.percentWhole(item.freightPercent)),
       (AppStrings.itemVat, CurrencyFormatter.usd(item.vat)),
+      (AppStrings.itemVatPercent, CurrencyFormatter.percentWhole(item.vatPercent)),
       (AppStrings.itemCostUsd, CurrencyFormatter.usd(item.costUsd)),
       (AppStrings.itemCostPhp, CurrencyFormatter.php(item.costPhp)),
     ];

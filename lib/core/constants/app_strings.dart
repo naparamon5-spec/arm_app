@@ -83,8 +83,10 @@ class AppStrings {
   static const String itemListGlp = 'UNIT GLP';
   static const String itemUnitPrice = 'UNIT PRICE';
   static const String itemExtPrice = 'EXTENDED PRICE';
-  static const String itemFreight = 'FREIGHT';
-  static const String itemVat = 'VAT';
+  static const String itemFreight = 'FREIGHT (USD)';
+  static const String itemFreightPercent = 'FREIGHT %';
+  static const String itemVat = 'VAT (USD)';
+  static const String itemVatPercent = 'VAT %';
   static const String itemCostUsd = 'COST (USD)';
   static const String itemCostPhp = 'COST (PHP)';
 

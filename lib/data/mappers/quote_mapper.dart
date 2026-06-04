@@ -71,7 +71,12 @@ class QuoteMapper {
         json['contactPerson'] ?? json['customer_contact'],
       ),
       endUser: QuoteModel.parseString(
-        json['end_user_name'] ?? json['end_user'] ?? json['endUser'],
+        json['End_User_Name'] ??
+            json['end_user_name'] ??
+            json['END_USER_NAME'] ??
+            json['endUser'] ??
+            json['end_user'] ??
+            json['EndUser'],
       ),
       customerPO: map.str(['customer_po', 'customerPO', 'cust_po']),
       salesmanName: QuoteModel.parseString(
@@ -85,7 +90,10 @@ class QuoteMapper {
       poNumber: map.str(['po_number', 'poNumber', 'PO_NO']),
       poDate: map.date(['po_date', 'poDate']),
       quoteDate: map.date(['quote_date', 'quoteDate']),
-      quoteType: map.str(['quote_type_desc', 'quote_type', 'quoteType', 'type']),
+      // Always show the human-readable description ("Landed-Manila (AIR)"),
+      // never the raw quote_type code. The detail header returns only a code,
+      // which would otherwise override the list view's description on merge.
+      quoteType: map.str(['quote_type_desc', 'quoteType', 'QUOTE_TYPE_DESC']),
       term: map.str(['TERM_DESCRIPTION', 'term_description', 'term', 'payment_term', 'terms']),
       suContactPerson: QuoteModel.parseString(
         json['eu_contact_person'] ?? json['su_contact_person'] ??
@@ -134,12 +142,14 @@ class QuoteMapper {
       itemNumber: map.str(['item_number', 'itemNumber', 'item_no']),
       site: map.str(['site', 'warehouse', 'SITE']),
       quantity: map.integer(['quantity', 'qty', 'QTY']),
-      listGlp: map.dbl(['list_glp', 'listGlp', 'list_price']),
+      listGlp: map.dbl(['unit_glp', 'list_glp', 'listGlp', 'list_price']),
       unitPrice: map.dbl(['unit_price', 'unitPrice']),
       extendedPrice: map.dbl(['extended_price', 'extendedPrice', 'amount']),
       freight: map.dbl(['freight', 'freight_amt']),
+      freightPercent: map.dbl(['freight_percent', 'freight_perc', 'freightPercent']),
       vat: map.dbl(['vat', 'vat_amt']),
-      costUsd: map.dbl(['cost_usd', 'costUsd']),
+      vatPercent: map.dbl(['vat_percent', 'vat_perc', 'vatPercent']),
+      costUsd: map.dbl(['cost', 'cost_usd', 'costUsd']),
       costPhp: map.dbl(['cost_php', 'costPhp']),
       standard: map.str(['standard', 'std']),
     );
