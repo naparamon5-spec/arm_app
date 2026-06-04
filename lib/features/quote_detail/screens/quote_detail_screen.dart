@@ -431,11 +431,13 @@ class _ApproverRemarksDialogState extends State<_ApproverRemarksDialog> {
                     contentPadding: const EdgeInsets.all(12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.inputBorder),
+                      borderSide:
+                          const BorderSide(color: AppColors.inputBorder),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: AppColors.inputBorder),
+                      borderSide:
+                          const BorderSide(color: AppColors.inputBorder),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -452,8 +454,7 @@ class _ApproverRemarksDialogState extends State<_ApproverRemarksDialog> {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: canSubmit
-                        ? () =>
-                            Navigator.pop(context, _controller.text.trim())
+                        ? () => Navigator.pop(context, _controller.text.trim())
                         : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -467,7 +468,7 @@ class _ApproverRemarksDialogState extends State<_ApproverRemarksDialog> {
                       ),
                     ),
                     child: const Text(
-                      'Submit',
+                      'Submit & Approve',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

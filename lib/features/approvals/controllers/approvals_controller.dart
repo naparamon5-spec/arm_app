@@ -57,13 +57,10 @@ class ApprovalsController extends ChangeNotifier {
         _currentPage = result.page;
         _totalPages = result.totalPages;
       } else if (int.tryParse(_searchQuery) != null) {
-        // Numeric → exact quote_number match
-        final result = await _quoteRepo.getPendingQuotes(
-          page: 1,
-          pageSize: 100,
-          quoteNumber: _searchQuery,
-        );
-        _quotes = result.data;
+        // Numeric → prefix match on quote_number. The API only supports an
+        // exact quote_number match, so fetch a batch and filter client-side
+        // (e.g. typing 352 shows every quote starting with 352).
+        _quotes = await _quoteNumberSearch(_searchQuery);
         _totalPages = 1;
       } else {
         // Text → fetch from 3 sources in parallel, merge, filter client-side
@@ -81,6 +78,20 @@ class ApprovalsController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  /// The API's `quote_number` filter is exact-match only, so to support
+  /// "starts-with" lookups (typing `352` to find `#352437`) we fetch an
+  /// unfiltered batch and match by prefix on the digits client-side.
+  Future<List<QuoteModel>> _quoteNumberSearch(String query) async {
+    final batch = await _safeFetch(pageSize: 500);
+    final prefix = _digitsOnly(query);
+    if (prefix.isEmpty) return batch;
+    return batch
+        .where((q) => _digitsOnly(q.quoteNumber).startsWith(prefix))
+        .toList();
+  }
+
+  String _digitsOnly(String value) => value.replaceAll(RegExp(r'\D'), '');
 
   /// Fires 3 API calls in parallel (customer_name, product_group_name,
   /// and an unfiltered batch), merges by quote number, then filters

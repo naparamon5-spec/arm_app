@@ -43,15 +43,6 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
       appBar: const AppBarWidget(),
       body: Consumer<ApprovalsController>(
         builder: (context, controller, _) {
-          if (controller.isLoading) {
-            return _ShimmerList();
-          }
-          if (controller.errorMessage != null) {
-            return AppErrorWidget(
-              message: controller.errorMessage,
-              onRetry: () => controller.loadApprovals(),
-            );
-          }
           return Column(
             children: [
               _SearchBar(
@@ -59,12 +50,29 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
                 onChanged: (v) => context.read<ApprovalsController>().search(v),
                 onClear: () => context.read<ApprovalsController>().clearSearch(),
               ),
-              _SectionHeader(count: controller.filteredQuotes.length),
-              Expanded(child: _QuoteList(controller: controller)),
+              Expanded(child: _buildBody(context, controller)),
             ],
           );
         },
       ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, ApprovalsController controller) {
+    if (controller.isLoading) {
+      return _ShimmerList();
+    }
+    if (controller.errorMessage != null) {
+      return AppErrorWidget(
+        message: controller.errorMessage,
+        onRetry: () => controller.loadApprovals(),
+      );
+    }
+    return Column(
+      children: [
+        _SectionHeader(count: controller.filteredQuotes.length),
+        Expanded(child: _QuoteList(controller: controller)),
+      ],
     );
   }
 }
@@ -73,19 +81,113 @@ class _ShimmerList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: 3,
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.md, AppSpacing.lg, AppSpacing.lg),
+      itemCount: 4,
       itemBuilder: (_, __) => Shimmer.fromColors(
         baseColor: const Color(0xFFE5E7EB),
         highlightColor: const Color(0xFFF9FAFB),
-        child: Container(
-          height: 180,
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
+        child: const Padding(
+          padding: EdgeInsets.only(bottom: AppSpacing.md),
+          child: _SkeletonCard(),
         ),
+      ),
+    );
+  }
+}
+
+/// A grey placeholder card that mirrors the [ApprovalCard] layout so the
+/// loading state reads as "a quote is coming here".
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE5E7EB), width: 0.5),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Quote number block
+          _Bar(width: 80, height: 8),
+          SizedBox(height: 8),
+          _Bar(width: 140, height: 16),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1),
+          ),
+          // Product & date row
+          _SkeletonFieldRow(),
+          SizedBox(height: 12),
+          // Customer & BU group row
+          _SkeletonFieldRow(),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(color: Color(0xFFE5E7EB), height: 1, thickness: 1),
+          ),
+          // Salesman pill row
+          Row(
+            children: [
+              CircleAvatar(radius: 14, backgroundColor: Color(0xFFE5E7EB)),
+              SizedBox(width: 8),
+              _Bar(width: 120, height: 10),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonFieldRow extends StatelessWidget {
+  const _SkeletonFieldRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Bar(width: 60, height: 8),
+            SizedBox(height: 6),
+            _Bar(width: 110, height: 12),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _Bar(width: 50, height: 8),
+            SizedBox(height: 6),
+            _Bar(width: 80, height: 12),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// A single rounded grey bar used as a text placeholder.
+class _Bar extends StatelessWidget {
+  final double width;
+  final double height;
+  const _Bar({required this.width, required this.height});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE5E7EB),
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }
