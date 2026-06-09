@@ -64,8 +64,16 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final firstName = controller.welcomeName;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+    return SingleChildScrollView(
+      // Let the dashboard content scroll so it never overflows on shorter
+      // devices. The "ARDENT RESOURCE MANAGEMENT" header lives in the Scaffold
+      // app bar (outside this body) and stays fixed.
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        bottom: AppSpacing.xxl,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
