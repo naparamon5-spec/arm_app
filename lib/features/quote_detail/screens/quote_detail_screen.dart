@@ -104,34 +104,48 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
     );
   }
 
-  void _onApprove() {
+  Future<void> _onApprove() async {
     final quote = _controller.quote ?? widget.quote;
 
-    ConfirmationDialog.show(
+    // Only negative-GP quotes require approver remarks. Collect them up front
+    // (reusing any captured when the screen opened) so they can be shown in the
+    // confirmation dialog and sent with the request. Non-negative quotes skip
+    // this entirely and approve with no remarks.
+    String? remarks;
+    if (quote.requiresRemarksOnApprove) {
+      remarks = _approverRemarks;
+      if (remarks == null || remarks.isEmpty) {
+        remarks = await _promptRemarks();
+      }
+      if (remarks == null || remarks.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Approver's remarks are required"),
+            ),
+          );
+        }
+        return;
+      }
+      _approverRemarks = remarks;
+    }
+
+    if (!mounted) return;
+
+    // Show the remarks that will be submitted as part of the confirmation so
+    // the approver can review them before sending.
+    final message = (remarks != null && remarks.isNotEmpty)
+        ? '${AppStrings.approveMessage}\n\nApprover remarks: $remarks'
+        : AppStrings.approveMessage;
+
+    await ConfirmationDialog.show(
       context: context,
       title: AppStrings.approveTitle,
-      message: AppStrings.approveMessage,
+      message: message,
       confirmLabel: AppStrings.confirm,
       cancelLabel: AppStrings.cancel,
       onConfirm: () async {
-        String? remarks = _approverRemarks;
-        if (quote.requiresRemarksOnApprove &&
-            (remarks == null || remarks.isEmpty)) {
-          remarks = await _promptRemarks();
-          if (remarks == null || remarks.isEmpty) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Approver's remarks are required"),
-                ),
-              );
-            }
-            return;
-          }
-          _approverRemarks = remarks;
-        }
-
-        _controller.approveQuote(
+        await _controller.approveQuote(
           remarks: remarks,
           onSuccess: () {
             if (mounted) {
