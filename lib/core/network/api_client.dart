@@ -182,10 +182,26 @@ class ApiClient {
 
   Never throwFromDio(DioException e, String fallback) {
     final status = e.response?.statusCode;
-    final message = ApiException.messageFromResponse(
-      e.response?.data,
-      fallback,
-    );
-    throw ApiException(message, statusCode: status);
+    throw ApiException(_friendlyMessage(e, status, fallback), statusCode: status);
+  }
+
+  /// Turns a Dio failure into a short, user-facing sentence. Timeouts and
+  /// gateway errors (502/503/504) often return an HTML error page as the body,
+  /// so we never surface that — we map them to a plain message instead.
+  String _friendlyMessage(DioException e, int? status, String fallback) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'The server took too long to respond. Please try again.';
+      case DioExceptionType.connectionError:
+        return 'Unable to reach the server. Please check your connection.';
+      default:
+        break;
+    }
+    if (status == 502 || status == 503 || status == 504) {
+      return 'The server is temporarily unavailable. Please try again in a moment.';
+    }
+    return ApiException.messageFromResponse(e.response?.data, fallback);
   }
 }
