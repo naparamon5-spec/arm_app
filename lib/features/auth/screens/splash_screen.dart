@@ -14,7 +14,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 2500), () {
+    Future.delayed(const Duration(milliseconds: 8000), () {
       if (!mounted) return;
       final loggedIn = AppDependencies.instance.sessionService.isLoggedIn;
       Navigator.of(context).pushReplacementNamed(
