@@ -32,14 +32,17 @@ class SessionService {
       return;
     }
 
-    // An expired access token is NOT a logout: it still identifies the user,
-    // and the API client refreshes it lazily on the first request. We only need
-    // a network refresh at startup when there's no access token at all but we
-    // still hold a refresh token — otherwise startup stays offline-friendly and
+    // An expired access token is NOT an immediate logout: the refresh token may
+    // still be valid. When the access token is missing OR already expired, try
+    // to recover it via the refresh token at startup. If that fails (no refresh
+    // token, or it's expired/revoked), the session is genuinely over. A token
+    // that's still valid is used as-is, so startup stays offline-friendly and
     // instant.
     final hasRefresh = refreshToken != null && refreshToken.isNotEmpty;
-    final hasAccess = accessToken != null && accessToken.isNotEmpty;
-    if (!hasAccess) {
+    final accessUsable = accessToken != null &&
+        accessToken.isNotEmpty &&
+        !_isTokenExpired(accessToken);
+    if (!accessUsable) {
       // No usable access token. Try to recover via the refresh token; if that
       // fails (no refresh token, or it's expired/revoked), the session is over.
       final refreshed = hasRefresh && (await refreshTokens?.call() ?? false);
@@ -90,6 +93,21 @@ class SessionService {
       role: role,
       email: email.isNotEmpty ? email : userId,
     );
+  }
+
+  /// Whether a JWT access token is expired (or expires within [leeway]).
+  ///
+  /// The [leeway] refreshes a token that's about to lapse so we don't hand a
+  /// request a token that dies in-flight. A token with no readable `exp` claim
+  /// is treated as NOT expired — we fall back to the reactive 401 refresh path
+  /// rather than forcing a logout on a token we can't reason about.
+  bool _isTokenExpired(String token, {Duration leeway = const Duration(seconds: 30)}) {
+    final claims = _decodeJwtPayload(token);
+    final exp = claims?['exp'];
+    final expSeconds = exp is int ? exp : int.tryParse(exp?.toString() ?? '');
+    if (expSeconds == null) return false;
+    final expiry = DateTime.fromMillisecondsSinceEpoch(expSeconds * 1000, isUtc: true);
+    return DateTime.now().toUtc().add(leeway).isAfter(expiry);
   }
 
   Map<String, dynamic>? _decodeJwtPayload(String token) {

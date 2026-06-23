@@ -32,7 +32,9 @@ class QuoteRepository {
       ),
     );
 
-    final rows = asJsonList(response['data']);
+    // The live API returns rows under `result` (each a JSON-encoded string);
+    // older/mock shapes use `data` with plain objects. asJsonList handles both.
+    final rows = asJsonList(response['result'] ?? response['data']);
     final quotes = rows.map(QuoteMapper.fromListRow).toList();
 
     return PaginatedQuotes(
@@ -40,13 +42,22 @@ class QuoteRepository {
       total: _asInt(response['total']),
       page: _asInt(response['page'], page),
       pageSize: _asInt(response['pageSize'], pageSize),
-      totalPages: _asInt(response['totalPages'], 1),
+      // Live API uses `total_page`; fall back to `totalPages` for the old shape.
+      totalPages: _asInt(response['total_page'] ?? response['totalPages'], 1),
     );
   }
 
   Future<List<QuoteModel>> getRecentQuotes() async {
+    // Prefer the dedicated /recent endpoint.
     final rows = await quoteApi.recent();
-    return rows.map(QuoteMapper.fromListRow).toList();
+    if (rows.isNotEmpty) {
+      return rows.map(QuoteMapper.fromListRow).toList();
+    }
+    // The /recent endpoint can come back empty even when approvals exist, so
+    // fall back to the most recent few from the main list (ordered by
+    // quote_date DESC).
+    final page = await getPendingQuotes(page: 1, pageSize: 5);
+    return page.data.take(5).toList();
   }
 
   Future<QuoteModel> getQuoteFull(String quoteNumber) async {
