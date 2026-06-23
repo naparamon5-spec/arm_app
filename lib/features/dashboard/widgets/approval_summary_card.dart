@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/di/app_dependencies.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../shared/navigation/app_router.dart';
@@ -30,6 +31,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
   String _targetDigits = '';
   bool _isInteracting = false;
   bool _isSearching = false;
+  OverlayEntry? _loadingEntry;
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
 
   @override
   void dispose() {
+    _hideLoading();
     _timer?.cancel();
     _cursorController.dispose();
     _inputController.removeListener(_onInputChanged);
@@ -139,6 +142,34 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
     }
   }
 
+  // ── full-screen loading overlay ───────────────────────────────────────────
+
+  /// Inserts a whole-screen scrim + red spinner that blocks all input while a
+  /// quote search is in flight. Matches the shared LoadingOverlay look.
+  void _showLoading() {
+    if (_loadingEntry != null) return;
+    _loadingEntry = OverlayEntry(
+      builder: (_) => const Positioned.fill(
+        child: AbsorbPointer(
+          child: ColoredBox(
+            color: Color(0x80000000),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_loadingEntry!);
+  }
+
+  void _hideLoading() {
+    _loadingEntry?.remove();
+    _loadingEntry = null;
+  }
+
   // ── search logic ──────────────────────────────────────────────────────────
 
   void _activateInput() {
@@ -160,6 +191,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
     }
 
     setState(() => _isSearching = true);
+    _showLoading();
     try {
       final repo = AppDependencies.instance.quoteRepository;
       // Guard: the detail endpoint isn't scoped by product group, so verify
@@ -168,6 +200,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       final allowed = await repo.canAccessQuote(input);
       if (!mounted) return;
       if (!allowed) {
+        _hideLoading();
         setState(() => _isSearching = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -179,6 +212,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       }
       final quote = await repo.getQuoteFull(input);
       if (!mounted) return;
+      _hideLoading();
       setState(() => _isSearching = false);
       // Wait until the user comes back from the detail screen, then clear the
       // field and resume the typewriter animation for the next search.
@@ -190,6 +224,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       _resetToIdle();
     } on ApiException catch (e) {
       if (!mounted) return;
+      _hideLoading();
       setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -199,6 +234,7 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
       );
     } catch (_) {
       if (!mounted) return;
+      _hideLoading();
       setState(() => _isSearching = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -324,26 +360,17 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
                       ),
               ),
               const SizedBox(width: 8),
-              _isSearching
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
-                      ),
-                    )
-                  : GestureDetector(
-                      onTap: () {
-                        if (!_isInteracting) _activateInput();
-                        _runSearch();
-                      },
-                      child: const Icon(
-                        Icons.search,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
+              GestureDetector(
+                onTap: () {
+                  if (!_isInteracting) _activateInput();
+                  _runSearch();
+                },
+                child: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
