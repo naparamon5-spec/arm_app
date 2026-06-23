@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -18,6 +19,11 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late final ProfileController _controller;
 
+  /// Whole-screen loader shown during sign-out. Uses the root overlay so the
+  /// scrim covers the bottom navigation bar too (which lives on the parent
+  /// MainScreen scaffold, outside this screen's own LoadingOverlay).
+  OverlayEntry? _logoutOverlay;
+
   @override
   void initState() {
     super.initState();
@@ -27,12 +33,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   void dispose() {
+    _hideLogoutOverlay();
     _controller.dispose();
     super.dispose();
   }
 
-  void _onSignOut() {
-    _controller.signOut(
+  void _showLogoutOverlay() {
+    if (_logoutOverlay != null) return;
+    _logoutOverlay = OverlayEntry(
+      builder: (_) => const Positioned.fill(
+        child: AbsorbPointer(
+          child: ColoredBox(
+            color: Color(0x80000000),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_logoutOverlay!);
+  }
+
+  void _hideLogoutOverlay() {
+    _logoutOverlay?.remove();
+    _logoutOverlay = null;
+  }
+
+  Future<void> _onSignOut() async {
+    _showLogoutOverlay();
+    await _controller.signOut(
       onSuccess: () {
         if (mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil(
@@ -42,6 +74,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
       },
     );
+    // On success the route (and this state) is gone; on failure we're still
+    // here — tear down the overlay and surface the error either way.
+    _hideLogoutOverlay();
+    if (mounted && _controller.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_controller.errorMessage!)),
+      );
+    }
   }
 
   @override
