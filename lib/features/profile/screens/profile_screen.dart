@@ -152,10 +152,10 @@ class _ProfileInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = user?.fullName ?? '—';
-    final role = user?.role ?? '—';
-    final email = user?.email ?? '—';
-    final userId = user?.id ?? '—';
+    final name = (user?.fullName ?? '').isNotEmpty ? user!.fullName : '—';
+    final userId = (user?.id ?? '').isNotEmpty ? user!.id : '—';
+    final classification =
+        (user?.classification ?? '').isNotEmpty ? user!.classification : '—';
 
     return Container(
       width: double.infinity,
@@ -178,7 +178,7 @@ class _ProfileInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            role,
+            userId,
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -193,12 +193,12 @@ class _ProfileInfoCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.email_outlined,
+              const Icon(Icons.work_outline,
                   size: 16, color: Color(0xFF9CA3AF)),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  email,
+                  classification,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
@@ -206,23 +206,6 @@ class _ProfileInfoCard extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.badge_outlined,
-                  size: 16, color: Color(0xFF9CA3AF)),
-              const SizedBox(width: 6),
-              Text(
-                userId,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF6B7280),
                 ),
               ),
             ],

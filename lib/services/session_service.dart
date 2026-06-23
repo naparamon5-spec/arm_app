@@ -78,6 +78,10 @@ class SessionService {
 
   UserModel _userFromToken(String userId, String accessToken) {
     final claims = _decodeJwtPayload(accessToken);
+    // Dump the full token payload so we can see exactly which fields the API
+    // puts in the JWT (e.g. employee_id / classification).
+    // ignore: avoid_print
+    print('[Session] token claims=$claims');
     final name = claims?['name']?.toString() ??
         claims?['full_name']?.toString() ??
         claims?['user_name']?.toString() ??
@@ -86,12 +90,25 @@ class SessionService {
         claims?['privilege']?.toString() ??
         'Quote Approver';
     final email = claims?['email']?.toString() ?? '';
+    final employeeId = claims?['employee_id']?.toString() ??
+        claims?['employeeId']?.toString() ??
+        claims?['EMPLOYEE_ID']?.toString() ??
+        claims?['emp_id']?.toString() ??
+        claims?['EMP_ID']?.toString() ??
+        userId;
+    final classification = claims?['classification']?.toString() ??
+        claims?['CLASSIFICATION']?.toString() ??
+        claims?['class']?.toString() ??
+        claims?['CLASS']?.toString() ??
+        '';
 
     return UserModel(
       id: userId,
       fullName: name,
       role: role,
       email: email.isNotEmpty ? email : userId,
+      employeeId: employeeId,
+      classification: classification,
     );
   }
 
