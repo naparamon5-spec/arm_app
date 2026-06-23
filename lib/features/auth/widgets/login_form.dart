@@ -195,25 +195,15 @@ class _LoginFormState extends State<LoginForm> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  child: controller.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : const Text(
-                          ' LOGIN ',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
+                  child: const Text(
+                    ' LOGIN ',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

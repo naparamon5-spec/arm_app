@@ -83,25 +83,13 @@ class _RouteRow extends StatelessWidget {
     color: Color(0xFFD32F2F),
   );
 
-  /// Product and customer, separated by a centered dot. Drops either side
+  /// Product and customer joined by a centered dot. Drops either side
   /// (and the dot) when empty.
-  List<Widget> _productCustomerParts() {
-    final parts = [
+  String _productCustomerLabel() {
+    return [
       quote.product.toUpperCase(),
       quote.customer,
-    ].where((s) => s.trim().isNotEmpty).toList();
-
-    final children = <Widget>[];
-    for (var i = 0; i < parts.length; i++) {
-      if (i > 0) {
-        children.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6),
-          child: Icon(Icons.circle, size: 6, color: Color(0xFFD32F2F)),
-        ));
-      }
-      children.add(Text(parts[i], maxLines: 1, style: _pillTextStyle));
-    }
-    return children;
+    ].where((s) => s.trim().isNotEmpty).join('  •  ');
   }
 
   @override
@@ -124,12 +112,11 @@ class _RouteRow extends StatelessWidget {
               border: Border.all(color: const Color(0xFFFFCDD2), width: 1),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: _productCustomerParts(),
-              ),
+            child: Text(
+              _productCustomerLabel(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: _pillTextStyle,
             ),
           ),
           const Spacer(),

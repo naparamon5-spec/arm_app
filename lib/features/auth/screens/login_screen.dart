@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/controllers/main_tab_controller.dart';
 import '../../../shared/navigation/app_router.dart';
+import '../../../shared/widgets/loading_overlay.dart';
+import '../controllers/auth_controller.dart';
 import '../widgets/login_form.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -12,9 +14,14 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          Positioned.fill(
+      body: Consumer<AuthController>(
+        builder: (context, auth, child) => LoadingOverlay(
+          isLoading: auth.isLoading,
+          child: child!,
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(
                 left: 24,
@@ -84,7 +91,8 @@ class LoginScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
