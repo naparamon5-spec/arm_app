@@ -48,7 +48,11 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
     final remarks = await _promptRemarks();
     if (!mounted) return;
     if (remarks != null && remarks.isNotEmpty) {
+      // "Submit & Approve" on the remarks dialog *is* the approval action for
+      // negative-GP quotes — send it straight to the approve API (the dialog
+      // already served as the confirmation, so no second prompt).
       _approverRemarks = remarks;
+      await _doApprove(remarks);
     } else {
       // Remarks are mandatory for negative-GP quotes — if the approver backs
       // out instead of entering them, leave the detail screen. Drop keyboard
@@ -107,13 +111,12 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
   Future<void> _onApprove() async {
     final quote = _controller.quote ?? widget.quote;
 
-    // Only negative-GP quotes require approver remarks. Collect them up front
-    // (reusing any captured when the screen opened) so they can be shown in the
-    // confirmation dialog and sent with the request. Non-negative quotes skip
-    // this entirely and approve with no remarks.
-    String? remarks;
+    // Negative-GP quotes are normally approved straight from the remarks dialog
+    // that pops on open. Reaching the bottom Approve button here means that flow
+    // was bypassed or a retry is needed — re-use the captured remarks (or ask
+    // again), then approve directly since the remarks entry is the confirmation.
     if (quote.requiresRemarksOnApprove) {
-      remarks = _approverRemarks;
+      var remarks = _approverRemarks;
       if (remarks == null || remarks.isEmpty) {
         remarks = await _promptRemarks();
       }
@@ -128,46 +131,48 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
         return;
       }
       _approverRemarks = remarks;
+      if (!mounted) return;
+      await _doApprove(remarks);
+      return;
     }
 
-    if (!mounted) return;
-
-    // Show the remarks that will be submitted as part of the confirmation so
-    // the approver can review them before sending.
-    final message = (remarks != null && remarks.isNotEmpty)
-        ? '${AppStrings.approveMessage}\n\nApprover remarks: $remarks'
-        : AppStrings.approveMessage;
-
+    // Positive-GP quotes: a single tap on Approve confirms, then approves with
+    // no remarks.
     await ConfirmationDialog.show(
       context: context,
       title: AppStrings.approveTitle,
-      message: message,
+      message: AppStrings.approveMessage,
       confirmLabel: AppStrings.confirm,
       cancelLabel: AppStrings.cancel,
-      onConfirm: () async {
-        await _controller.approveQuote(
-          remarks: remarks,
-          onSuccess: () {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Quote approved successfully!'),
-                  backgroundColor: AppColors.approved,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-              Navigator.of(context).pop();
-            }
-          },
-        );
+      onConfirm: () => _doApprove(null),
+    );
+  }
 
-        if (mounted && _controller.errorMessage != null) {
+  /// Sends the approval to the API, shows a success snackbar and closes the
+  /// screen on success, or surfaces the error message on failure. Shared by
+  /// the negative-GP remarks dialog flow and the positive-GP Approve button.
+  Future<void> _doApprove(String? remarks) async {
+    await _controller.approveQuote(
+      remarks: remarks,
+      onSuccess: () {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_controller.errorMessage!)),
+            const SnackBar(
+              content: Text('Quote approved successfully!'),
+              backgroundColor: AppColors.approved,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
+          Navigator.of(context).pop();
         }
       },
     );
+
+    if (mounted && _controller.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_controller.errorMessage!)),
+      );
+    }
   }
 
   @override
