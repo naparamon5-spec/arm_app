@@ -161,8 +161,23 @@ class _ApprovalSummaryCardState extends State<ApprovalSummaryCard>
 
     setState(() => _isSearching = true);
     try {
-      final quote =
-          await AppDependencies.instance.quoteRepository.getQuoteFull(input);
+      final repo = AppDependencies.instance.quoteRepository;
+      // Guard: the detail endpoint isn't scoped by product group, so verify
+      // the quote is within the user's scoped list before opening it. This
+      // blocks opening a quote number that belongs to another product group.
+      final allowed = await repo.canAccessQuote(input);
+      if (!mounted) return;
+      if (!allowed) {
+        setState(() => _isSearching = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Quote #$input is not in your product group.'),
+            backgroundColor: const Color(0xFF1C2333),
+          ),
+        );
+        return;
+      }
+      final quote = await repo.getQuoteFull(input);
       if (!mounted) return;
       setState(() => _isSearching = false);
       // Wait until the user comes back from the detail screen, then clear the

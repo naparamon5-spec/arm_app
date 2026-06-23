@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -62,13 +61,11 @@ class QuoteApprovalsApi {
         ApiPaths.quoteApprovals,
         queryParameters: filters.toQuery(),
       );
-      final data = Map<String, dynamic>.from(response.data ?? {});
-      final rowCount = data['data'] is List ? (data['data'] as List).length : 0;
       // ignore: avoid_print
-      print('[QuoteApi] list query=${filters.toQuery()} '
-          '-> rows=$rowCount total=${data['total']} '
-          'page=${data['page']} totalPages=${data['totalPages']}');
-      return data;
+      print('[QuoteApi] list query: ${filters.toQuery()}');
+      // ignore: avoid_print
+      print('[QuoteApi] list raw: ${response.data}');
+      return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
       print('[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
@@ -78,44 +75,16 @@ class QuoteApprovalsApi {
 
   Future<List<Map<String, dynamic>>> recent() async {
     try {
-      // ignore: avoid_print
-      print('[QuoteApi] recent GET ${ApiPaths.quoteApprovalsRecent}');
-      final response = await _client.get<dynamic>(
+      final response = await _client.get<Map<String, dynamic>>(
         ApiPaths.quoteApprovalsRecent,
       );
-      final body = response.data;
       // ignore: avoid_print
-      print('[QuoteApi] recent status=${response.statusCode} '
-          'bodyType=${body.runtimeType}');
-      // ignore: avoid_print
-      print('[QuoteApi] recent raw body: $body');
-
-      // The endpoint may return: a Map wrapping rows under `result`/`data`, or a
-      // bare list. Each row may be a plain object or a JSON-encoded string.
-      dynamic rowsRaw;
-      if (body is Map) {
-        // ignore: avoid_print
-        print('[QuoteApi] recent map keys=${body.keys.toList()}');
-        rowsRaw = body['result'] ?? body['data'] ?? body['recent'];
-      } else if (body is List) {
-        rowsRaw = body;
-      }
-      // ignore: avoid_print
-      print('[QuoteApi] recent rowsRaw type=${rowsRaw.runtimeType} '
-          'len=${rowsRaw is List ? rowsRaw.length : 'n/a'} '
-          'firstType=${rowsRaw is List && rowsRaw.isNotEmpty ? rowsRaw.first.runtimeType : 'n/a'}');
-
-      final rows = _asRowList(rowsRaw);
-      // ignore: avoid_print
-      print('[QuoteApi] recent -> parsed rows=${rows.length}');
-      if (rows.isNotEmpty) {
-        // ignore: avoid_print
-        print('[QuoteApi] recent first parsed keys=${rows.first.keys.toList()}');
-      }
-      return rows;
+      print('[QuoteApi] recent raw: ${response.data}');
+      final data = response.data?['data'];
+      return _asRowList(data);
     } on DioException catch (e) {
       // ignore: avoid_print
-      print('[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error} data=${e.response?.data}');
+      print('[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve recent approvals');
     }
   }
@@ -128,7 +97,7 @@ class QuoteApprovalsApi {
         ApiPaths.quoteApproval(_encoded(quoteNumber)),
       );
       // ignore: avoid_print
-      print('[QuoteApi] getQuote $quoteNumber -> ok');
+      print('[QuoteApi] getQuote raw: ${response.data}');
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
@@ -210,26 +179,11 @@ class QuoteApprovalsApi {
 
   List<Map<String, dynamic>> _asRowList(dynamic data) {
     if (data is List) {
-      return data.map(_asRow).where((m) => m.isNotEmpty).toList();
+      return data
+          .map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})
+          .where((m) => m.isNotEmpty)
+          .toList();
     }
     return [];
-  }
-
-  /// A row may be a plain map or a JSON-encoded string (the live list/recent
-  /// endpoints return the latter inside their array).
-  Map<String, dynamic> _asRow(dynamic e) {
-    if (e is Map) return Map<String, dynamic>.from(e);
-    if (e is String) {
-      final s = e.trim();
-      if (s.startsWith('{')) {
-        try {
-          final decoded = jsonDecode(s);
-          if (decoded is Map) return Map<String, dynamic>.from(decoded);
-        } catch (_) {
-          // fall through to empty map
-        }
-      }
-    }
-    return <String, dynamic>{};
   }
 }

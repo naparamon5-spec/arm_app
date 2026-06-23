@@ -32,9 +32,7 @@ class QuoteRepository {
       ),
     );
 
-    // The live API returns rows under `result` (each a JSON-encoded string);
-    // older/mock shapes use `data` with plain objects. asJsonList handles both.
-    final rows = asJsonList(response['result'] ?? response['data']);
+    final rows = asJsonList(response['data']);
     final quotes = rows.map(QuoteMapper.fromListRow).toList();
 
     return PaginatedQuotes(
@@ -42,22 +40,31 @@ class QuoteRepository {
       total: _asInt(response['total']),
       page: _asInt(response['page'], page),
       pageSize: _asInt(response['pageSize'], pageSize),
-      // Live API uses `total_page`; fall back to `totalPages` for the old shape.
-      totalPages: _asInt(response['total_page'] ?? response['totalPages'], 1),
+      totalPages: _asInt(response['totalPages'], 1),
     );
   }
 
+  /// Whether the signed-in user is allowed to open [quoteNumber].
+  ///
+  /// The detail endpoint (`GET /:quote_number`) is NOT row-level scoped, so a
+  /// user could otherwise open a quote outside their product group simply by
+  /// typing its number into the dashboard search. The list endpoint *is*
+  /// scoped server-side (by privilege / bu_group / product-group `entry_flag`),
+  /// so "appears in the user's scoped list" is the authority on access. An
+  /// empty result means the quote either doesn't exist or isn't in the user's
+  /// product group — in both cases the user must not open it.
+  Future<bool> canAccessQuote(String quoteNumber) async {
+    final result = await getPendingQuotes(
+      page: 1,
+      pageSize: 1,
+      quoteNumber: quoteNumber,
+    );
+    return result.data.isNotEmpty;
+  }
+
   Future<List<QuoteModel>> getRecentQuotes() async {
-    // Prefer the dedicated /recent endpoint.
     final rows = await quoteApi.recent();
-    if (rows.isNotEmpty) {
-      return rows.map(QuoteMapper.fromListRow).toList();
-    }
-    // The /recent endpoint can come back empty even when approvals exist, so
-    // fall back to the most recent few from the main list (ordered by
-    // quote_date DESC).
-    final page = await getPendingQuotes(page: 1, pageSize: 5);
-    return page.data.take(5).toList();
+    return rows.map(QuoteMapper.fromListRow).toList();
   }
 
   Future<QuoteModel> getQuoteFull(String quoteNumber) async {

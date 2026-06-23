@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 /// Helpers for parsing loosely-typed API / database JSON objects.
 extension JsonMap on Map<String, dynamic> {
   String str(List<String> keys, [String fallback = '']) {
@@ -52,19 +50,6 @@ extension JsonMap on Map<String, dynamic> {
 Map<String, dynamic> asJsonMap(dynamic value) {
   if (value is Map<String, dynamic>) return value;
   if (value is Map) return Map<String, dynamic>.from(value);
-  // The list endpoint returns each row as a JSON-encoded string inside the
-  // `result` array — decode it into a map.
-  if (value is String) {
-    final s = value.trim();
-    if (s.startsWith('{')) {
-      try {
-        final decoded = jsonDecode(s);
-        if (decoded is Map) return Map<String, dynamic>.from(decoded);
-      } catch (_) {
-        // fall through to empty map
-      }
-    }
-  }
   return {};
 }
 
