@@ -9,11 +9,35 @@ class IncidentalRow extends StatelessWidget {
   final IncidentalModel incidental;
   final double forex;
 
+  /// Quote currency (`currency_id`, e.g. "Php"). Drives which currency is shown
+  /// on top so the row matches the header card's metrics.
+  final String currencyId;
+
   const IncidentalRow({
     super.key,
     required this.incidental,
     required this.forex,
+    this.currencyId = '',
   });
+
+  /// Whether the quote's native currency is PHP. When true the PHP value is
+  /// shown on top and USD below; otherwise USD stays on top with PHP below.
+  bool get _isPhp => currencyId.toUpperCase().contains('PHP');
+
+  /// USD amount (from the API's `amount_dol`).
+  double get _usd => incidental.amount;
+
+  /// PHP amount — the API's own `amount` when available, otherwise derived from
+  /// the USD value × forex (e.g. for mock data).
+  double get _php => incidental.amountPhp ?? incidental.amount * forex;
+
+  /// Primary (top) value — native currency first.
+  String get _primary =>
+      _isPhp ? CurrencyFormatter.php(_php) : CurrencyFormatter.usd(_usd);
+
+  /// Secondary (bottom) value — the other currency.
+  String get _sub =>
+      _isPhp ? CurrencyFormatter.usd(_usd) : CurrencyFormatter.php(_php);
 
   @override
   Widget build(BuildContext context) {
@@ -49,12 +73,12 @@ class IncidentalRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                CurrencyFormatter.usd(incidental.amount),
+                _primary,
                 style: AppTextStyles.incidentalAmount,
               ),
               const SizedBox(height: AppSpacing.xxs),
               Text(
-                CurrencyFormatter.php(incidental.amount * forex),
+                _sub,
                 style: AppTextStyles.incidentalAmountSub,
               ),
             ],

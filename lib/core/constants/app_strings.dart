@@ -66,6 +66,8 @@ class AppStrings {
   static const String labelAllowedUp = 'Allowed Up %';
   static const String labelCurrency = 'Currency';
   static const String labelReason = 'Reason';
+  static const String labelSubject = 'Subject';
+  static const String labelRemarks = 'Remarks';
 
   // Metrics
   static const String metricBilling = 'BILLING';

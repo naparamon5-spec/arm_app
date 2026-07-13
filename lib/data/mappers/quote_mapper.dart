@@ -1,4 +1,3 @@
-
 import '../../core/api/api_paths.dart';
 import '../../core/config/api_config.dart';
 import '../../core/utils/json_map_extensions.dart';
@@ -67,8 +66,10 @@ class QuoteMapper {
         json['customer_name'] ?? json['customer'] ?? json['CUSTOMER_NAME'],
       ),
       contactPerson: QuoteModel.parseString(
-        json['customer_contact_person'] ?? json['contact_person'] ??
-        json['contactPerson'] ?? json['customer_contact'],
+        json['customer_contact_person'] ??
+            json['contact_person'] ??
+            json['contactPerson'] ??
+            json['customer_contact'],
       ),
       endUser: QuoteModel.parseString(
         json['End_User_Name'] ??
@@ -80,11 +81,18 @@ class QuoteMapper {
       ),
       customerPO: map.str(['customer_po', 'customerPO', 'cust_po']),
       salesmanName: QuoteModel.parseString(
-        json['salesman'] ?? json['salesman_name'] ?? json['sales_man'] ?? json['SALESMAN_NAME'],
+        json['salesman'] ??
+            json['salesman_name'] ??
+            json['sales_man'] ??
+            json['SALESMAN_NAME'],
       ),
       // BDM (Business Development Manager) name — distinct from BU group.
       bdName: QuoteModel.parseString(
-        json['bdm'] ?? json['bd_name'] ?? json['bdName'] ?? json['bdm_name'] ?? json['bdm_code'],
+        json['bdm'] ??
+            json['bd_name'] ??
+            json['bdName'] ??
+            json['bdm_name'] ??
+            json['bdm_code'],
       ),
       buGroup: map.str(['bu_group', 'BU_GROUP']),
       poNumber: map.str(['po_number', 'poNumber', 'PO_NO']),
@@ -94,10 +102,18 @@ class QuoteMapper {
       // never the raw quote_type code. The detail header returns only a code,
       // which would otherwise override the list view's description on merge.
       quoteType: map.str(['quote_type_desc', 'quoteType', 'QUOTE_TYPE_DESC']),
-      term: map.str(['TERM_DESCRIPTION', 'term_description', 'term', 'payment_term', 'terms']),
+      term: map.str([
+        'TERM_DESCRIPTION',
+        'term_description',
+        'term',
+        'payment_term',
+        'terms'
+      ]),
       suContactPerson: QuoteModel.parseString(
-        json['eu_contact_person'] ?? json['su_contact_person'] ??
-        json['suContactPerson'] ?? json['end_user_contact'],
+        json['eu_contact_person'] ??
+            json['su_contact_person'] ??
+            json['suContactPerson'] ??
+            json['end_user_contact'],
       ),
       destination: map.str(['destination', 'ship_destination']),
       // SELLING — dollar value (PHP sub-value is computed as value * forex).
@@ -118,6 +134,7 @@ class QuoteMapper {
       ]),
       currencyId: map.str(['currency_id', 'currencyId', 'currency']),
       reason: map.str(['reason', 'remarks', 'checking_remarks']),
+      subject: map.str(['subject', 'quote_subject', 'SUBJECT', 'title']),
       status: _statusFrom(map.str(['status', 'checking', 'approval_status'])),
       items: items ?? [],
       incidentals: incidentals ?? [],
@@ -146,7 +163,8 @@ class QuoteMapper {
       unitPrice: map.dbl(['unit_price', 'unitPrice']),
       extendedPrice: map.dbl(['extended_price', 'extendedPrice', 'amount']),
       freight: map.dbl(['freight', 'freight_amt']),
-      freightPercent: map.dbl(['freight_percent', 'freight_perc', 'freightPercent']),
+      freightPercent:
+          map.dbl(['freight_percent', 'freight_perc', 'freightPercent']),
       vat: map.dbl(['vat', 'vat_amt']),
       vatPercent: map.dbl(['vat_percent', 'vat_perc', 'vatPercent']),
       costUsd: map.dbl(['cost', 'cost_usd', 'costUsd']),
@@ -160,7 +178,11 @@ class QuoteMapper {
     return IncidentalModel(
       type: map.str(['type', 'tpc_type', 'incidental_type']),
       description: map.str(['description', 'tpc_desc', 'remarks']),
-      amount: map.dbl(['amount', 'tpc_amount', 'incidental_amount']),
+      // The API returns both currencies per row: `amount_dol` (USD) and
+      // `amount` (PHP). They are independent values, not a forex conversion, so
+      // keep each as-is rather than deriving one from the other.
+      amount: map.dbl(['amount_dol', 'tpc_amount_dol', 'incidental_amount_dol']),
+      amountPhp: map.dbl(['amount', 'tpc_amount', 'incidental_amount']),
     );
   }
 

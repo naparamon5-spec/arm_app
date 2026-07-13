@@ -11,8 +11,7 @@ class PrintService {
     required String type,
     required String accessToken,
   }) async {
-    final url =
-        '${ApiConfig.baseUrl}/api/quote-approvals/$quoteNumber/$type';
+    final url = '${ApiConfig.baseUrl}/api/quote-approvals/$quoteNumber/$type';
 
     final response = await http.get(
       Uri.parse(url),

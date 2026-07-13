@@ -68,7 +68,8 @@ class QuoteApprovalsApi {
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      print('[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
+      print(
+          '[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve approvals');
     }
   }
@@ -84,7 +85,8 @@ class QuoteApprovalsApi {
       return _asRowList(data);
     } on DioException catch (e) {
       // ignore: avoid_print
-      print('[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
+      print(
+          '[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve recent approvals');
     }
   }
@@ -101,7 +103,8 @@ class QuoteApprovalsApi {
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      print('[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
+      print(
+          '[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
       _client.throwFromDio(e, 'Failed to retrieve quote');
     }
   }
@@ -180,7 +183,8 @@ class QuoteApprovalsApi {
   List<Map<String, dynamic>> _asRowList(dynamic data) {
     if (data is List) {
       return data
-          .map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})
+          .map((e) =>
+              e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{})
           .where((m) => m.isNotEmpty)
           .toList();
     }

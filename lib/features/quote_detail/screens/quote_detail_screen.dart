@@ -163,7 +163,9 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
               behavior: SnackBarBehavior.floating,
             ),
           );
-          Navigator.of(context).pop();
+          // Return `true` so the approvals list knows to refresh and drop the
+          // now-approved quote.
+          Navigator.of(context).pop(true);
         }
       },
     );

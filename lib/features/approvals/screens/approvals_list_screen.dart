@@ -48,7 +48,8 @@ class _ApprovalsListScreenState extends State<ApprovalsListScreen> {
               _SearchBar(
                 controller: _searchController,
                 onChanged: (v) => context.read<ApprovalsController>().search(v),
-                onClear: () => context.read<ApprovalsController>().clearSearch(),
+                onClear: () =>
+                    context.read<ApprovalsController>().clearSearch(),
               ),
               Expanded(child: _buildBody(context, controller)),
             ],
@@ -297,8 +298,12 @@ class _QuoteList extends StatelessWidget {
 
     final itemCount = controller.filteredQuotes.length + 1;
 
-    return ListView.builder(
+    return RefreshIndicator(
+      color: const Color(0xFFD32F2F),
+      onRefresh: () => controller.loadApprovals(),
+      child: ListView.builder(
       controller: controller.scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, AppSpacing.lg),
       itemCount: itemCount,
@@ -342,13 +347,23 @@ class _QuoteList extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: ApprovalCard(
             quote: quote,
-            onTap: () => Navigator.of(context).pushNamed(
-              AppRouter.quoteDetail,
-              arguments: quote,
-            ),
+            onTap: () async {
+              final result = await Navigator.of(context).pushNamed(
+                AppRouter.quoteDetail,
+                arguments: quote,
+              );
+              // The detail screen returns `true` after a successful approval.
+              // Remove the quote from the list right away — the "for approval"
+              // view can still return it briefly, so a full reload isn't
+              // reliable for making it disappear.
+              if (result == true) {
+                controller.removeQuote(quote.quoteNumber);
+              }
+            },
           ),
         );
       },
+      ),
     );
   }
 }

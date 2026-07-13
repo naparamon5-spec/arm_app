@@ -10,9 +10,11 @@ class QuoteItemModel {
   final double unitPrice;
   final double extendedPrice;
   final double freight;
+
   /// Freight as a percentage (`freight_percent`).
   final double freightPercent;
   final double vat;
+
   /// VAT as a percentage (`vat_percent`).
   final double vatPercent;
   final double costUsd;

@@ -20,9 +20,24 @@ class _PrintOptionsDialogState extends State<PrintOptionsDialog> {
   PrintOption _selected = PrintOption.costing;
 
   static const _options = [
-    (PrintOption.php,     Icons.currency_exchange, 'PHP',     'Values in Philippine Peso (₱)'),
-    (PrintOption.dollar,  Icons.attach_money,      'DOLLAR',  'Values in US Dollar (\$)'),
-    (PrintOption.costing, Icons.bar_chart,          'COSTING', 'Full costing with \$ and ₱'),
+    (
+      PrintOption.php,
+      Icons.currency_exchange,
+      'PHP',
+      'Values in Philippine Peso (₱)'
+    ),
+    (
+      PrintOption.dollar,
+      Icons.attach_money,
+      'DOLLAR',
+      'Values in US Dollar (\$)'
+    ),
+    (
+      PrintOption.costing,
+      Icons.bar_chart,
+      'COSTING',
+      'Full costing with \$ and ₱'
+    ),
   ];
 
   @override
@@ -80,8 +95,8 @@ class _PrintOptionsDialogState extends State<PrintOptionsDialog> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   decoration: BoxDecoration(
                     color: selected
                         ? const Color(0xFFFFF0F0)

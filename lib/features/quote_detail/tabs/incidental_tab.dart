@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../core/constants/app_text_styles.dart';
 import '../../../data/models/quote_model.dart';
 import '../../../shared/widgets/empty_state_widget.dart';
 import '../widgets/incidental_row.dart';
@@ -30,7 +28,11 @@ class IncidentalTab extends StatelessWidget {
             _SectionHeader(),
             _ColumnHeaders(),
             ...quote.incidentals.map(
-              (i) => IncidentalRow(incidental: i, forex: quote.forex),
+              (i) => IncidentalRow(
+                incidental: i,
+                forex: quote.forex,
+                currencyId: quote.currencyId,
+              ),
             ),
           ],
         ),

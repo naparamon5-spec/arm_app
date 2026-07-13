@@ -29,7 +29,8 @@ class _FileViewerScreenState extends State<FileViewerScreen> {
   static const _imageExts = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'};
 
   bool get _isPdf => widget.attachment.fileType.toLowerCase() == 'pdf';
-  bool get _isImage => _imageExts.contains(widget.attachment.fileType.toLowerCase());
+  bool get _isImage =>
+      _imageExts.contains(widget.attachment.fileType.toLowerCase());
 
   @override
   void initState() {

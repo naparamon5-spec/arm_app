@@ -27,7 +27,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool get _hasSpecialChar =>
       _newPassword.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
   bool get _allRequirementsMet =>
-      _hasMinLength && _hasLowercase && _hasUppercase && _hasNumber && _hasSpecialChar;
+      _hasMinLength &&
+      _hasLowercase &&
+      _hasUppercase &&
+      _hasNumber &&
+      _hasSpecialChar;
 
   @override
   void dispose() {
@@ -196,9 +200,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: controller.isLoading
-                      ? null
-                      : () => _submit(controller),
+                  onPressed:
+                      controller.isLoading ? null : () => _submit(controller),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
                     elevation: 0,
@@ -216,21 +219,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           ),
                         )
                       : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'UPDATE PASSWORD',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: 1.2,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text(
+                              'UPDATE PASSWORD',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.lock_reset,
+                                size: 18, color: Colors.white),
+                          ],
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      Icon(Icons.lock_reset, size: 18, color: Colors.white),
-                    ],
-                  ),
                 ),
               ),
             ),
@@ -373,7 +377,6 @@ class _PasswordField extends StatelessWidget {
   final bool obscure;
   final VoidCallback onToggle;
   final ValueChanged<String>? onChanged;
-  final String? helperText;
   final Widget? helperWidget;
   final String? Function(String?)? validator;
 
@@ -383,7 +386,6 @@ class _PasswordField extends StatelessWidget {
     required this.obscure,
     required this.onToggle,
     this.onChanged,
-    this.helperText,
     this.helperWidget,
     this.validator,
   });
@@ -444,16 +446,6 @@ class _PasswordField extends StatelessWidget {
         if (helperWidget != null) ...[
           const SizedBox(height: 8),
           helperWidget!,
-        ] else if (helperText != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            helperText!,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: Color(0xFF64748B),
-            ),
-          ),
         ],
       ],
     );
@@ -481,13 +473,16 @@ class PasswordRequirementsWidget extends StatelessWidget {
         children: [
           _RequirementRow(met: hasMinLength, text: 'Minimum 8 characters'),
           const SizedBox(height: 6),
-          _RequirementRow(met: hasLowercase, text: 'At least 1 lowercase letter'),
+          _RequirementRow(
+              met: hasLowercase, text: 'At least 1 lowercase letter'),
           const SizedBox(height: 6),
-          _RequirementRow(met: hasUppercase, text: 'At least 1 uppercase letter'),
+          _RequirementRow(
+              met: hasUppercase, text: 'At least 1 uppercase letter'),
           const SizedBox(height: 6),
           _RequirementRow(met: hasNumber, text: 'At least 1 number'),
           const SizedBox(height: 6),
-          _RequirementRow(met: hasSpecialChar, text: 'At least 1 special character'),
+          _RequirementRow(
+              met: hasSpecialChar, text: 'At least 1 special character'),
         ],
       ),
     );

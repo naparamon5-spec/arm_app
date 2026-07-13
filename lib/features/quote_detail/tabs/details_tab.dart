@@ -18,101 +18,129 @@ class DetailsTab extends StatelessWidget {
     return ColoredBox(
       color: const Color(0xFFF4F7F8),
       child: SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        children: [
-          SectionCard(
-            title: AppStrings.sectionQuoteDetails,
-            children: [
-              DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelQuoteNumber, value: FieldFormatter.orEmpty(quote.quoteNumber)),
-                DetailRow(label: AppStrings.labelProduct, value: FieldFormatter.orEmpty(quote.product)),
-                DetailRow(label: AppStrings.labelQuoteType, value: FieldFormatter.orEmpty(quote.quoteType)),
-                DetailRow(
-                  label: AppStrings.labelQuoteDate,
-                  value: DateFormatter.display(quote.quoteDate),
-                ),
-              ]),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SectionCard(
-            title: AppStrings.sectionCustomerEndUsers,
-            children: [
-              DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelCustomer, value: FieldFormatter.orEmpty(quote.customer)),
-                DetailRow(label: AppStrings.labelContactPerson, value: FieldFormatter.orEmpty(quote.contactPerson)),
-                DetailRow(label: AppStrings.labelTerm, value: FieldFormatter.orEmpty(quote.term)),
-                DetailRow(label: AppStrings.labelEndUser, value: FieldFormatter.orEmpty(quote.endUser)),
-              ]),
-              const SizedBox(height: AppSpacing.lg),
-              DetailRow(
-                label: AppStrings.labelSuContactPerson,
-                value: FieldFormatter.orEmpty(quote.suContactPerson),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SectionCard(
-            title: AppStrings.sectionSalesmanPo,
-            children: [
-              DetailRowGrid(rows: [
-                DetailRow(label: AppStrings.labelSalesman, value: FieldFormatter.orEmpty(quote.salesmanName)),
-                DetailRow(label: AppStrings.labelBdm, value: FieldFormatter.orEmpty(quote.bdName)),
-                DetailRow(label: AppStrings.labelPoNumber, value: FieldFormatter.orEmpty(quote.poNumber)),
-                DetailRow(
-                  label: AppStrings.labelPoDate,
-                  value: DateFormatter.display(quote.poDate),
-                ),
-              ]),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SectionCard(
-            title: AppStrings.sectionOthers,
-            children: [
-              DetailRowGrid(rows: [
-                DetailRow(
-                  label: AppStrings.labelForex,
-                  value: '\$${quote.forex}',
-                ),
-                DetailRow(
-                  label: AppStrings.labelAllowedUp,
-                  value: CurrencyFormatter.percent(quote.allowedUpPercent),
-                ),
-              ]),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: DetailRow(
-                      label: AppStrings.labelReason,
-                      // Show the reason when present; otherwise fall back to the
-                      // checking status.
-                      value: FieldFormatter.orEmpty(
-                        quote.reason.trim().isNotEmpty
-                            ? quote.reason
-                            : quote.checking,
-                      ),
-                      italic: true,
-                    ),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          children: [
+            SectionCard(
+              title: AppStrings.sectionQuoteDetails,
+              children: [
+                DetailRowGrid(rows: [
+                  DetailRow(
+                      label: AppStrings.labelQuoteNumber,
+                      value: FieldFormatter.orEmpty(quote.quoteNumber)),
+                  DetailRow(
+                      label: AppStrings.labelProduct,
+                      value: FieldFormatter.orEmpty(quote.product)),
+                  DetailRow(
+                      label: AppStrings.labelQuoteType,
+                      value: FieldFormatter.orEmpty(quote.quoteType)),
+                  DetailRow(
+                    label: AppStrings.labelQuoteDate,
+                    value: DateFormatter.display(quote.quoteDate),
                   ),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(
-                    child: DetailRow(
-                      label: AppStrings.labelCurrency,
-                      value: FieldFormatter.orEmpty(quote.currencyId),
+                ]),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SectionCard(
+              title: AppStrings.sectionCustomerEndUsers,
+              children: [
+                DetailRowGrid(rows: [
+                  DetailRow(
+                      label: AppStrings.labelCustomer,
+                      value: FieldFormatter.orEmpty(quote.customer)),
+                  DetailRow(
+                      label: AppStrings.labelContactPerson,
+                      value: FieldFormatter.orEmpty(quote.contactPerson)),
+                  DetailRow(
+                      label: AppStrings.labelTerm,
+                      value: FieldFormatter.orEmpty(quote.term)),
+                  DetailRow(
+                      label: AppStrings.labelEndUser,
+                      value: FieldFormatter.orEmpty(quote.endUser)),
+                ]),
+                const SizedBox(height: AppSpacing.lg),
+                DetailRow(
+                  label: AppStrings.labelSuContactPerson,
+                  value: FieldFormatter.orEmpty(quote.suContactPerson),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SectionCard(
+              title: AppStrings.sectionSalesmanPo,
+              children: [
+                DetailRowGrid(rows: [
+                  DetailRow(
+                      label: AppStrings.labelSalesman,
+                      value: FieldFormatter.orEmpty(quote.salesmanName)),
+                  DetailRow(
+                      label: AppStrings.labelBdm,
+                      value: FieldFormatter.orEmpty(quote.bdName)),
+                  DetailRow(
+                      label: AppStrings.labelPoNumber,
+                      value: FieldFormatter.orEmpty(quote.poNumber)),
+                  DetailRow(
+                    label: AppStrings.labelPoDate,
+                    value: DateFormatter.display(quote.poDate),
+                  ),
+                ]),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SectionCard(
+              title: AppStrings.sectionOthers,
+              children: [
+                DetailRowGrid(rows: [
+                  DetailRow(
+                    label: AppStrings.labelForex,
+                    value: '\$${quote.forex}',
+                  ),
+                  DetailRow(
+                    label: AppStrings.labelAllowedUp,
+                    value: CurrencyFormatter.percent(quote.allowedUpPercent),
+                  ),
+                ]),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: DetailRow(
+                        label: AppStrings.labelReason,
+                        // Show the reason when present; otherwise fall back to the
+                        // checking status.
+                        value: FieldFormatter.orEmpty(
+                          quote.reason.trim().isNotEmpty
+                              ? quote.reason
+                              : quote.checking,
+                        ),
+                        italic: true,
+                      ),
                     ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: DetailRow(
+                        label: AppStrings.labelCurrency,
+                        value: FieldFormatter.orEmpty(quote.currencyId),
+                      ),
+                    ),
+                  ],
+                ),
+                if ((quote.salesmanNote ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.lg),
+                  DetailRow(
+                    label: AppStrings.labelRemarks,
+                    value: FieldFormatter.orEmpty(quote.salesmanNote),
+                    italic: true,
                   ),
                 ],
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-        ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

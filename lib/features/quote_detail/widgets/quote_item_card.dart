@@ -165,52 +165,52 @@ class _ProductBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (productCode.isNotEmpty) ...[
-            const Text(
-              'PRODUCT CODE',
-              style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (productCode.isNotEmpty) ...[
+          const Text(
+            'PRODUCT CODE',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
-            const SizedBox(height: 2),
-            Text(
-              productCode,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-              ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            productCode,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.3,
             ),
-            const SizedBox(height: 6),
-          ],
-          if (itemNumber.isNotEmpty) ...[
-            const Text(
-              'ITEM NUMBER',
-              style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              itemNumber,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          ),
+          const SizedBox(height: 6),
         ],
+        if (itemNumber.isNotEmpty) ...[
+          const Text(
+            'ITEM NUMBER',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            itemNumber,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -226,9 +226,15 @@ class _FieldGrid extends StatelessWidget {
       (AppStrings.itemListGlp, CurrencyFormatter.usd(item.listGlp)),
       (AppStrings.itemExtPrice, CurrencyFormatter.php(item.extendedPrice)),
       (AppStrings.itemFreight, CurrencyFormatter.usd(item.freight)),
-      (AppStrings.itemFreightPercent, CurrencyFormatter.percentWhole(item.freightPercent)),
+      (
+        AppStrings.itemFreightPercent,
+        CurrencyFormatter.percentWhole(item.freightPercent)
+      ),
       (AppStrings.itemVat, CurrencyFormatter.usd(item.vat)),
-      (AppStrings.itemVatPercent, CurrencyFormatter.percentWhole(item.vatPercent)),
+      (
+        AppStrings.itemVatPercent,
+        CurrencyFormatter.percentWhole(item.vatPercent)
+      ),
       (AppStrings.itemCostUsd, CurrencyFormatter.usd(item.costUsd)),
       (AppStrings.itemCostPhp, CurrencyFormatter.php(item.costPhp)),
     ];
@@ -272,4 +278,3 @@ class _FieldGrid extends StatelessWidget {
     );
   }
 }
-

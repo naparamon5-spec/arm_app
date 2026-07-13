@@ -12,8 +12,10 @@ class QuoteModel {
   final String endUser;
   final String customerPO;
   final String salesmanName;
+
   /// BDM (Business Development Manager) name — detail "BDM" field.
   final String bdName;
+
   /// Business unit group (e.g. "AM", "PDM") — list card "BU GROUP" field.
   final String buGroup;
   final String poNumber;
@@ -30,14 +32,19 @@ class QuoteModel {
   final double gpPercentage;
   final double forex;
   final double allowedUpPercent;
+
   /// Currency code from API (`currency_id`), e.g. "Php".
   final String currencyId;
   final String reason;
+
+  /// Quote subject line (`subject`) — a short title describing the quote.
+  final String subject;
   final QuoteStatus status;
   final List<QuoteItemModel> items;
   final List<IncidentalModel> incidentals;
   final List<AttachmentModel> attachments;
   final String? salesmanNote;
+
   /// Approval workflow state from API (`checking` column).
   final String checking;
 
@@ -67,6 +74,7 @@ class QuoteModel {
     required this.allowedUpPercent,
     this.currencyId = '',
     required this.reason,
+    this.subject = '',
     required this.status,
     required this.items,
     required this.incidentals,
@@ -88,26 +96,30 @@ class QuoteModel {
     if (value is String) return value;
     if (value is Map) {
       // salesman object
-      return value['FULL_NAME']?.toString()
-          ?? value['full_name']?.toString()
+      return value['FULL_NAME']?.toString() ??
+          value['full_name']?.toString()
           // end-user object
-          ?? value['End_User_Name']?.toString()
-          ?? value['end_user_name']?.toString()
-          ?? value['END_USER_NAME']?.toString()
+          ??
+          value['End_User_Name']?.toString() ??
+          value['end_user_name']?.toString() ??
+          value['END_USER_NAME']?.toString()
           // customer object
-          ?? value['CUSTOMER_NAME']?.toString()
-          ?? value['customer_name']?.toString()
+          ??
+          value['CUSTOMER_NAME']?.toString() ??
+          value['customer_name']?.toString()
           // product group object — prefer the short name ("DELL ISG") over the
           // expanded description ("DELL Integrated Solutions Group").
-          ?? value['product_group_name']?.toString()
-          ?? value['PRODUCT_GROUP_NAME']?.toString()
-          ?? value['product_group_desc']?.toString()
-          ?? value['PRODUCT_GROUP_DESC']?.toString()
-          ?? value['name']?.toString()
-          ?? '';
+          ??
+          value['product_group_name']?.toString() ??
+          value['PRODUCT_GROUP_NAME']?.toString() ??
+          value['product_group_desc']?.toString() ??
+          value['PRODUCT_GROUP_DESC']?.toString() ??
+          value['name']?.toString() ??
+          '';
     }
     return value.toString();
   }
+
   /// Merges this detailed quote (from quotation_header) with the [summary] row
   /// from the "for approval" list (vw_QuoteForApproval). The detail header only
   /// returns codes (customer_code, salesman_code, …) and omits names and the
@@ -135,15 +147,22 @@ class QuoteModel {
       term: pick(term, summary.term),
       suContactPerson: pick(suContactPerson, summary.suContactPerson),
       destination: pick(destination, summary.destination),
-      billingAmount: pickNum(billingAmount, summary.billingAmount),
-      buyPrice: pickNum(buyPrice, summary.buyPrice),
-      incidentalAmount: pickNum(incidentalAmount, summary.incidentalAmount),
-      gpAmount: pickNum(gpAmount, summary.gpAmount),
-      gpPercentage: pickNum(gpPercentage, summary.gpPercentage),
+      // Financials: prefer the list (summary) values. The list view returns the
+      // canonical dollar amounts (`total_buy_price_dol`, `total_selling_price_dol`,
+      // …), whereas the detail header returns native-currency amounts on a
+      // different scale. Preferring the detail value here made the header card
+      // (which multiplies by forex for PHP quotes) show a wrong Buy Price, so we
+      // keep the list's dollar value whenever it is present.
+      billingAmount: pickNum(summary.billingAmount, billingAmount),
+      buyPrice: pickNum(summary.buyPrice, buyPrice),
+      incidentalAmount: pickNum(summary.incidentalAmount, incidentalAmount),
+      gpAmount: pickNum(summary.gpAmount, gpAmount),
+      gpPercentage: pickNum(summary.gpPercentage, gpPercentage),
       forex: pickNum(forex, summary.forex),
       allowedUpPercent: pickNum(allowedUpPercent, summary.allowedUpPercent),
       currencyId: pick(currencyId, summary.currencyId),
       reason: pick(reason, summary.reason),
+      subject: pick(subject, summary.subject),
       status: status,
       items: items,
       incidentals: incidentals,

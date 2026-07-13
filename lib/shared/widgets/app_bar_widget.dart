@@ -25,29 +25,29 @@ class AppBarWidget extends StatelessWidget implements PreferredSizeWidget {
       title: Padding(
         padding: const EdgeInsets.only(top: 8),
         child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: 'ARDENT ',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 0.5,
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'ARDENT ',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-            TextSpan(
-              text: 'RESOURCE MANAGEMENT',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFD32F2F),
-                letterSpacing: 0.5,
+              TextSpan(
+                text: 'RESOURCE MANAGEMENT',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFFD32F2F),
+                  letterSpacing: 0.5,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
       actions: actions,
       iconTheme: const IconThemeData(color: Colors.white),

@@ -35,7 +35,8 @@ class DashboardController extends ChangeNotifier {
       _recentQuotes = await _quoteRepo.getRecentQuotes();
       final page = await _quoteRepo.getPendingQuotes(page: 1, pageSize: 1);
       _pendingCount = page.total;
-      debugPrint('[Dashboard] loaded ${_recentQuotes.length} recent quotes, total=${page.total}');
+      debugPrint(
+          '[Dashboard] loaded ${_recentQuotes.length} recent quotes, total=${page.total}');
     } on ApiException catch (e) {
       debugPrint('[Dashboard] ApiException: ${e.message} (${e.statusCode})');
       _errorMessage = e.message;

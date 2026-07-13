@@ -24,8 +24,7 @@ class AppDependencies {
   final TokenStorage tokenStorage = TokenStorage();
   late final ApiClient apiClient = ApiClient(tokenStorage: tokenStorage);
   late final AuthApi authApi = AuthApi(apiClient);
-  late final QuoteApprovalsApi quoteApprovalsApi =
-      QuoteApprovalsApi(apiClient);
+  late final QuoteApprovalsApi quoteApprovalsApi = QuoteApprovalsApi(apiClient);
 
   late final SessionService sessionService =
       SessionService(tokenStorage: tokenStorage);

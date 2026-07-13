@@ -5,6 +5,9 @@ class ApiPaths {
   // Health
   static const String health = '/health';
 
+  // App version (Android update check)
+  static const String appVersion = '/api/app/version';
+
   // Auth — /api/auth
   static const String authLogin = '/api/auth/login';
   static const String authRefresh = '/api/auth/refresh';

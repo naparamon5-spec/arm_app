@@ -182,7 +182,8 @@ class ApiClient {
 
   Never throwFromDio(DioException e, String fallback) {
     final status = e.response?.statusCode;
-    throw ApiException(_friendlyMessage(e, status, fallback), statusCode: status);
+    throw ApiException(_friendlyMessage(e, status, fallback),
+        statusCode: status);
   }
 
   /// Turns a Dio failure into a short, user-facing sentence. Timeouts and

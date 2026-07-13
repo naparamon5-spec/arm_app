@@ -118,12 +118,14 @@ class SessionService {
   /// request a token that dies in-flight. A token with no readable `exp` claim
   /// is treated as NOT expired — we fall back to the reactive 401 refresh path
   /// rather than forcing a logout on a token we can't reason about.
-  bool _isTokenExpired(String token, {Duration leeway = const Duration(seconds: 30)}) {
+  bool _isTokenExpired(String token,
+      {Duration leeway = const Duration(seconds: 30)}) {
     final claims = _decodeJwtPayload(token);
     final exp = claims?['exp'];
     final expSeconds = exp is int ? exp : int.tryParse(exp?.toString() ?? '');
     if (expSeconds == null) return false;
-    final expiry = DateTime.fromMillisecondsSinceEpoch(expSeconds * 1000, isUtc: true);
+    final expiry =
+        DateTime.fromMillisecondsSinceEpoch(expSeconds * 1000, isUtc: true);
     return DateTime.now().toUtc().add(leeway).isAfter(expiry);
   }
 

@@ -22,6 +22,7 @@ class QuoteHeaderCard extends StatelessWidget {
           _NavHeader(quote: quote),
           const Divider(height: 1, thickness: 1, color: AppColors.divider),
           _RouteRow(quote: quote),
+          _SubjectRow(quote: quote),
           _MetricsCard(quote: quote),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -60,7 +61,8 @@ class _NavHeader extends StatelessWidget {
                     style: AppTextStyles.quoteHeaderLabel,
                   ),
                   const SizedBox(height: 2),
-                  Text(quote.quoteNumber, style: AppTextStyles.quoteHeaderNumber),
+                  Text(quote.quoteNumber,
+                      style: AppTextStyles.quoteHeaderNumber),
                 ],
               ),
             ),
@@ -123,6 +125,49 @@ class _RouteRow extends StatelessWidget {
           Text(
             DateFormatter.display(quote.quoteDate),
             style: AppTextStyles.quoteHeaderDate,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Subject line, shown above the metrics so it's easy to check at a glance.
+// Hidden when the quote has no subject.
+class _SubjectRow extends StatelessWidget {
+  final QuoteModel quote;
+  const _SubjectRow({required this.quote});
+
+  @override
+  Widget build(BuildContext context) {
+    if (quote.subject.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.lg,
+        AppSpacing.xs,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${AppStrings.labelSubject.toUpperCase()}: ',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textMuted,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              quote.subject.trim(),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -202,31 +247,31 @@ class _MetricsCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              Expanded(
-                child: _MetricCard(
-                  child: MetricTile(
-                    label: AppStrings.metricGpAmt,
-                    value: _primary(quote.gpAmount),
-                    subValue: _sub(quote.gpAmount),
-                    valueColor: quote.gpAmount >= 0
-                        ? AppColors.textPrimary
-                        : AppColors.negativeValue,
+                Expanded(
+                  child: _MetricCard(
+                    child: MetricTile(
+                      label: AppStrings.metricGpAmt,
+                      value: _primary(quote.gpAmount),
+                      subValue: _sub(quote.gpAmount),
+                      valueColor: quote.gpAmount >= 0
+                          ? AppColors.textPrimary
+                          : AppColors.negativeValue,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _MetricCard(
-                  child: MetricTile(
-                    label: AppStrings.metricGpPct,
-                    value: CurrencyFormatter.percent(quote.gpPercentage),
-                    valueColor: AppColors.primary,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _MetricCard(
+                    child: MetricTile(
+                      label: AppStrings.metricGpPct,
+                      value: CurrencyFormatter.percent(quote.gpPercentage),
+                      valueColor: AppColors.primary,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          ),  // IntrinsicHeight
+              ],
+            ),
+          ), // IntrinsicHeight
         ],
       ),
     );

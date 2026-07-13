@@ -161,6 +161,16 @@ class ApprovalsController extends ChangeNotifier {
     }
   }
 
+  /// Removes an approved quote from the list immediately so it disappears
+  /// without waiting for a full refetch. The "for approval" server view can
+  /// still return a just-approved quote (replication lag / multi-stage
+  /// approval), so a plain reload isn't reliable for this.
+  void removeQuote(String quoteNumber) {
+    final before = _quotes.length;
+    _quotes = _quotes.where((q) => q.quoteNumber != quoteNumber).toList();
+    if (_quotes.length != before) notifyListeners();
+  }
+
   void search(String query) {
     _searchQuery = query.trim();
     notifyListeners();
