@@ -224,7 +224,8 @@ class _GpBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isNegative = gpPercentage < 0;
-    final color = isNegative ? const Color(0xFFD32F2F) : const Color(0xFF16A34A);
+    final color =
+        isNegative ? const Color(0xFFD32F2F) : const Color(0xFF16A34A);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [

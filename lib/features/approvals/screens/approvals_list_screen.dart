@@ -302,67 +302,67 @@ class _QuoteList extends StatelessWidget {
       color: const Color(0xFFD32F2F),
       onRefresh: () => controller.loadApprovals(),
       child: ListView.builder(
-      controller: controller.scrollController,
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, AppSpacing.lg),
-      itemCount: itemCount,
-      itemBuilder: (context, index) {
-        if (index == controller.filteredQuotes.length) {
-          if (controller.isLoadingMore) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Color(0xFFD32F2F),
+        controller: controller.scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.xs, AppSpacing.lg, AppSpacing.lg),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index == controller.filteredQuotes.length) {
+            if (controller.isLoadingMore) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Color(0xFFD32F2F),
+                    ),
                   ),
                 ),
-              ),
-            );
-          }
-          if (!controller.hasMoreData) {
-            return const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(
-                child: Text(
-                  'All approvals loaded',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF9CA3AF),
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        }
-
-        final quote = controller.filteredQuotes[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-          child: ApprovalCard(
-            quote: quote,
-            onTap: () async {
-              final result = await Navigator.of(context).pushNamed(
-                AppRouter.quoteDetail,
-                arguments: quote,
               );
-              // The detail screen returns `true` after a successful approval.
-              // Remove the quote from the list right away — the "for approval"
-              // view can still return it briefly, so a full reload isn't
-              // reliable for making it disappear.
-              if (result == true) {
-                controller.removeQuote(quote.quoteNumber);
-              }
-            },
-          ),
-        );
-      },
+            }
+            if (!controller.hasMoreData) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(
+                  child: Text(
+                    'All approvals loaded',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF9CA3AF),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          }
+
+          final quote = controller.filteredQuotes[index];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: ApprovalCard(
+              quote: quote,
+              onTap: () async {
+                final result = await Navigator.of(context).pushNamed(
+                  AppRouter.quoteDetail,
+                  arguments: quote,
+                );
+                // The detail screen returns `true` after a successful approval.
+                // Remove the quote from the list right away — the "for approval"
+                // view can still return it briefly, so a full reload isn't
+                // reliable for making it disappear.
+                if (result == true) {
+                  controller.removeQuote(quote.quoteNumber);
+                }
+              },
+            ),
+          );
+        },
       ),
     );
   }

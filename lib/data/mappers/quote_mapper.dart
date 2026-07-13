@@ -181,7 +181,8 @@ class QuoteMapper {
       // The API returns both currencies per row: `amount_dol` (USD) and
       // `amount` (PHP). They are independent values, not a forex conversion, so
       // keep each as-is rather than deriving one from the other.
-      amount: map.dbl(['amount_dol', 'tpc_amount_dol', 'incidental_amount_dol']),
+      amount:
+          map.dbl(['amount_dol', 'tpc_amount_dol', 'incidental_amount_dol']),
       amountPhp: map.dbl(['amount', 'tpc_amount', 'incidental_amount']),
     );
   }
