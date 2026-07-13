@@ -61,8 +61,11 @@ class ProfileController extends ChangeNotifier {
   }
 
   Future<void> signOut({required VoidCallback onSuccess}) async {
-    _isLoading = true;
-    notifyListeners();
+    // Note: sign-out intentionally does NOT toggle [isLoading]. The profile
+    // screen shows its own root-overlay loader during logout (so the scrim
+    // also covers the bottom navigation bar); driving the screen's
+    // LoadingOverlay here too would render a second spinner on top of it.
+    _errorMessage = null;
 
     try {
       await _authRepo.logout();
@@ -71,9 +74,6 @@ class ProfileController extends ChangeNotifier {
       _errorMessage = e.message;
     } catch (_) {
       _errorMessage = 'Sign out failed. Please try again.';
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 }
