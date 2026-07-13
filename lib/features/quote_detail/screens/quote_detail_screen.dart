@@ -189,6 +189,11 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
             isLoading: controller.isLoading,
             child: Scaffold(
               backgroundColor: AppColors.background,
+              // This screen has no text fields of its own (the approver-remarks
+              // entry is a separate dialog route), so the body must not shrink
+              // for the keyboard — otherwise the fixed-height header column
+              // overflows behind the dialog on short viewports.
+              resizeToAvoidBottomInset: false,
               appBar: AppBar(
                 backgroundColor: const Color(0xFF1C2333),
                 automaticallyImplyLeading: false,
