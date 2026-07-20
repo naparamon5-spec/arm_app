@@ -49,18 +49,12 @@ class AppVersionService {
       if (decoded is! Map) return null;
       final payload = decoded['data'] is Map ? decoded['data'] : decoded;
 
-      final latestStr = (payload['latest_version'] ??
-              payload['latestVersion'] ??
-              payload['mobile_version'] ??
-              payload['mobileVersion'])
-          ?.toString()
-          .trim();
-      final urlStr = (payload['download_url'] ??
-              payload['downloadUrl'] ??
-              payload['mobile_url'] ??
-              payload['mobileUrl'])
-          ?.toString()
-          .trim();
+      // Backend shape (same as eforward):
+      // { "application": "Quote Approval", "version": "3.5.2", "url": "…apk" }
+      // `version` is null until a release is published — treat that as
+      // "no update available" and fail open.
+      final latestStr = payload['version']?.toString().trim();
+      final urlStr = payload['url']?.toString().trim();
 
       if (latestStr == null || latestStr.isEmpty) return null;
       if (urlStr == null || urlStr.isEmpty) return null;
