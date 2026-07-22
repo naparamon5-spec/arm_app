@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -26,7 +27,7 @@ class SessionService {
 
   Future<void> restoreSession() async {
     final userId = await tokenStorage.userId;
-    var accessToken = await tokenStorage.accessToken;
+    final accessToken = await tokenStorage.accessToken;
     final refreshToken = await tokenStorage.refreshToken;
 
     if (userId == null || userId.isEmpty) {
@@ -34,28 +35,36 @@ class SessionService {
       return;
     }
 
-    // An expired access token is NOT an immediate logout: the refresh token may
-    // still be valid. When the access token is missing OR already expired, try
-    // to recover it via the refresh token at startup. If that fails (no refresh
-    // token, or it's expired/revoked), the session is genuinely over. A token
-    // that's still valid is used as-is, so startup stays offline-friendly and
-    // instant.
     final hasRefresh = refreshToken != null && refreshToken.isNotEmpty;
-    final accessUsable = accessToken != null &&
-        accessToken.isNotEmpty &&
-        !_isTokenExpired(accessToken);
-    if (!accessUsable) {
-      // No usable access token. Try to recover via the refresh token; if that
-      // fails (no refresh token, or it's expired/revoked), the session is over.
-      final refreshed = hasRefresh && (await refreshTokens?.call() ?? false);
-      accessToken = refreshed ? await tokenStorage.accessToken : null;
-      if (accessToken == null || accessToken.isEmpty) {
-        await clearSession();
-        return;
+    final hasAccess = accessToken != null && accessToken.isNotEmpty;
+
+    // Startup must NEVER block on the network — doing so leaves the app frozen
+    // on the launch screen for up to the request timeout when the API is slow
+    // or unreachable. So we restore the session purely from local storage here.
+    //
+    // An expired access token is NOT an immediate logout, and we do NOT wait on
+    // a refresh to renew it: the reactive 401 interceptor (see ApiClient) renews
+    // the token on the first real API call, and expires the session if the
+    // refresh token is also dead. This keeps launch instant and offline-safe.
+    if (hasAccess) {
+      // Decode the stored token for immediate display. Even if it's expired, the
+      // reactive refresh path replaces it on the first authenticated request.
+      _currentUser = _userFromToken(userId, accessToken);
+
+      // If the access token has already expired, warm up a fresh one in the
+      // background so the first API call likely arrives with a valid token.
+      // Deliberately not awaited: startup must not wait on this.
+      if (_isTokenExpired(accessToken) && hasRefresh) {
+        unawaited(Future(() => refreshTokens?.call()));
       }
+      return;
     }
 
-    _currentUser = _userFromToken(userId, accessToken);
+    // No usable access token to build a session from offline (tokens are
+    // normally stored together, so this is rare). The session can't be restored
+    // without a network round trip, which we won't do on the launch path — send
+    // the user to login, where a fresh sign-in re-establishes the session.
+    await clearSession();
   }
 
   Future<void> setSession({
