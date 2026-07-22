@@ -59,8 +59,10 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
   }
 
   Future<void> _enforceLatestVersionIfNeeded({bool fromResume = false}) async {
-    // Mobile only (Android + iOS); the dialog adapts per platform.
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+    // Android only. iOS updates are delivered exclusively through the App
+    // Store; showing a custom force-update dialog that links to an external
+    // (APK) download would violate App Store Review Guidelines 2.4.5 / 3.2.2.
+    if (!Platform.isAndroid) return;
     if (_versionUpToDate || _versionDialogVisible || _versionCheckInProgress) {
       return;
     }

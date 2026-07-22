@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../config/api_config.dart';
 import '../network/api_client.dart';
@@ -62,13 +63,13 @@ class QuoteApprovalsApi {
         queryParameters: filters.toQuery(),
       );
       // ignore: avoid_print
-      print('[QuoteApi] list query: ${filters.toQuery()}');
+      if (kDebugMode) debugPrint('[QuoteApi] list query: ${filters.toQuery()}');
       // ignore: avoid_print
-      print('[QuoteApi] list raw: ${response.data}');
+      if (kDebugMode) debugPrint('[QuoteApi] list raw: ${response.data}');
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      print(
+      if (kDebugMode) debugPrint(
           '[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve approvals');
     }
@@ -80,12 +81,12 @@ class QuoteApprovalsApi {
         ApiPaths.quoteApprovalsRecent,
       );
       // ignore: avoid_print
-      print('[QuoteApi] recent raw: ${response.data}');
+      if (kDebugMode) debugPrint('[QuoteApi] recent raw: ${response.data}');
       final data = response.data?['data'];
       return _asRowList(data);
     } on DioException catch (e) {
       // ignore: avoid_print
-      print(
+      if (kDebugMode) debugPrint(
           '[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve recent approvals');
     }
@@ -99,11 +100,11 @@ class QuoteApprovalsApi {
         ApiPaths.quoteApproval(_encoded(quoteNumber)),
       );
       // ignore: avoid_print
-      print('[QuoteApi] getQuote raw: ${response.data}');
+      if (kDebugMode) debugPrint('[QuoteApi] getQuote raw: ${response.data}');
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      print(
+      if (kDebugMode) debugPrint(
           '[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
       _client.throwFromDio(e, 'Failed to retrieve quote');
     }
@@ -153,7 +154,7 @@ class QuoteApprovalsApi {
       return Uint8List.fromList(response.data ?? const []);
     } on DioException catch (e) {
       // ignore: avoid_print
-      print('[QuoteApi] downloadFile error: filename=$filename '
+      if (kDebugMode) debugPrint('[QuoteApi] downloadFile error: filename=$filename '
           'status=${e.response?.statusCode} msg=${e.message}');
       _client.throwFromDio(e, 'Failed to download file');
     }

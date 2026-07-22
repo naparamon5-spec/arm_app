@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../core/network/token_storage.dart';
 import '../data/models/user_model.dart';
 
@@ -78,10 +80,9 @@ class SessionService {
 
   UserModel _userFromToken(String userId, String accessToken) {
     final claims = _decodeJwtPayload(accessToken);
-    // Dump the full token payload so we can see exactly which fields the API
-    // puts in the JWT (e.g. employee_id / classification).
-    // ignore: avoid_print
-    print('[Session] token claims=$claims');
+    // Debug-only: inspect which fields the API puts in the JWT. Never logged in
+    // release builds — token claims are sensitive.
+    if (kDebugMode) debugPrint('[Session] token claims=$claims');
     final name = claims?['name']?.toString() ??
         claims?['full_name']?.toString() ??
         claims?['user_name']?.toString() ??
