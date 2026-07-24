@@ -119,29 +119,41 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: _passwordController,
-                validator: Validators.password,
-                obscureText: _obscurePassword,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w400,
-                  color: Color(0xFF1A1A2E),
-                ),
-                decoration: _fieldDecoration(hint: 'ENTER PASSWORD').copyWith(
-                  suffixIcon: IconButton(
-                    icon: Icon(
+              Stack(
+                alignment: Alignment.centerRight,
+                children: [
+                  TextFormField(
+                    controller: _passwordController,
+                    validator: Validators.password,
+                    obscureText: _obscurePassword,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                    decoration: _fieldDecoration(hint: 'ENTER PASSWORD')
+                        .copyWith(
+                      contentPadding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 28,
+                      ),
+                    ),
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                  ),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
+                    child: Icon(
                       _obscurePassword
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
                       color: const Color(0xFF9CA3AF),
                       size: 20,
                     ),
-                    onPressed: () =>
-                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
-                ),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                ],
               ),
               const SizedBox(height: 20),
               // REMEMBER ME
