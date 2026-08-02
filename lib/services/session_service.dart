@@ -13,6 +13,13 @@ class SessionService {
   UserModel? _currentUser;
   bool _rememberDevice = true;
 
+  /// The credentials from the most recent successful password login, kept in
+  /// memory only (never persisted here). Lets the Profile screen enable
+  /// biometric login using the just-entered password without asking for it
+  /// again. Cleared on sign-out.
+  String? lastUserId;
+  String? lastPassword;
+
   /// Refreshes the access token using the stored refresh token.
   /// Wired by the DI layer to [ApiClient.refreshSession].
   Future<bool> Function()? refreshTokens;
@@ -85,6 +92,8 @@ class SessionService {
   Future<void> clearSession() async {
     await tokenStorage.clear();
     _currentUser = null;
+    lastUserId = null;
+    lastPassword = null;
   }
 
   UserModel _userFromToken(String userId, String accessToken) {

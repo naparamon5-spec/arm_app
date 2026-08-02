@@ -14,13 +14,41 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 2500), () {
-      if (!mounted) return;
-      final loggedIn = AppDependencies.instance.sessionService.isLoggedIn;
-      Navigator.of(context).pushReplacementNamed(
-        loggedIn ? AppRouter.dashboard : AppRouter.login,
+    Future.delayed(const Duration(milliseconds: 2500), _decideNextRoute);
+  }
+
+  Future<void> _decideNextRoute() async {
+    if (!mounted) return;
+    final deps = AppDependencies.instance;
+    final loggedIn = deps.sessionService.isLoggedIn;
+
+    // No saved session — go straight to the login screen.
+    if (!loggedIn) {
+      _go(AppRouter.login);
+      return;
+    }
+
+    // Saved session present. If the user enabled biometric login, gate entry
+    // behind a Face ID / Touch ID / fingerprint / passcode check. On failure or
+    // cancel we fall back to the login screen (the session stays saved, and the
+    // login screen offers an "unlock" retry plus the password path).
+    final biometric = deps.biometricService;
+    final enabled = await biometric.isEnabled();
+    if (enabled && await biometric.canAuthenticate()) {
+      final ok = await biometric.authenticate(
+        reason: 'Unlock ARM to continue',
       );
-    });
+      if (!mounted) return;
+      _go(ok ? AppRouter.dashboard : AppRouter.login);
+      return;
+    }
+
+    _go(AppRouter.dashboard);
+  }
+
+  void _go(String route) {
+    if (!mounted) return;
+    Navigator.of(context).pushReplacementNamed(route);
   }
 
   @override

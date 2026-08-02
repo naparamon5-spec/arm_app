@@ -4,9 +4,9 @@ class AppStrings {
   // App
   static const String appName = 'Ardent Resource Management';
   static const String appBarHeading = 'ARDENT RESOURCE MANAGEMENT';
-  static const String appVersion = 'V2.4.0-ENTERPRISE';
+  static const String appVersion = 'V4.5.2-ENTERPRISE';
   static const String appVersionStable =
-      'Version 4.3.0-stable | ARDENT NETWORKS INC.';
+      'Version 4.5.2-stable | ARDENT NETWORKS INC.';
   static const String companyName = 'ARDENT NETWORKS';
   static const String companyNameSuffix = 'NETWORKS';
   static const String enterpriseGateway = 'Enterprise Resource Gateway';

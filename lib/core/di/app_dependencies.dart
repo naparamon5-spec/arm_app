@@ -4,6 +4,7 @@ import '../../core/network/api_client.dart';
 import '../../core/network/token_storage.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/repositories/quote_repository.dart';
+import '../../services/biometric_service.dart';
 import '../../services/session_service.dart';
 import '../../shared/navigation/app_router.dart';
 
@@ -28,6 +29,9 @@ class AppDependencies {
 
   late final SessionService sessionService =
       SessionService(tokenStorage: tokenStorage);
+
+  late final BiometricService biometricService =
+      BiometricService(tokenStorage: tokenStorage);
 
   late final AuthRepository authRepository = AuthRepository(
     authApi: authApi,

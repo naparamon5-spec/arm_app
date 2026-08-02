@@ -1,5 +1,6 @@
 package com.example.arm_app
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// local_auth requires a FragmentActivity host to show the biometric prompt.
+class MainActivity : FlutterFragmentActivity()

@@ -35,6 +35,20 @@ class AuthRepository {
       refreshToken: refreshToken,
     );
 
+    // Keep the just-entered credentials in memory so the Profile screen can
+    // enable biometric login without re-prompting for the password.
+    sessionService.lastUserId = userId;
+    sessionService.lastPassword = password;
+
+    // If biometric login is already enabled, refresh the stored credentials so
+    // a later password change keeps biometric login working.
+    if (await tokenStorage.isBiometricEnabled()) {
+      await tokenStorage.setBiometricCredentials(
+        userId: userId,
+        password: password,
+      );
+    }
+
     return sessionService.currentUser!;
   }
 

@@ -3,6 +3,8 @@
          main manifest so it is included in release builds; the debug manifest
          only applies to debug/profile builds. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Required by local_auth for biometric (fingerprint/face) sign-in. -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
     <application
         android:label="ARM"
         android:name="${applicationName}"

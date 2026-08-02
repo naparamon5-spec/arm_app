@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/di/app_dependencies.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -144,6 +146,8 @@ class _Body extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _ChangePasswordTile(controller: controller),
+              const SizedBox(height: 12),
+              const _BiometricToggleTile(),
               const SizedBox(height: 140),
             ],
           ),
@@ -167,20 +171,53 @@ class _Body extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Version 2.4.0',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF9CA3AF),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                const _VersionText(),
               ],
             ),
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Displays the app version read from the build metadata (pubspec version),
+/// so it always matches the shipped binary instead of a hardcoded string.
+class _VersionText extends StatefulWidget {
+  const _VersionText();
+
+  @override
+  State<_VersionText> createState() => _VersionTextState();
+}
+
+class _VersionTextState extends State<_VersionText> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (mounted) setState(() => _version = info.version);
+    } catch (_) {
+      // Leave blank on failure; the label still renders gracefully.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _version.isEmpty ? 'Version' : 'Version $_version',
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Color(0xFF9CA3AF),
+      ),
+      textAlign: TextAlign.center,
     );
   }
 }
@@ -322,6 +359,168 @@ class _ChangePasswordTile extends StatelessWidget {
             const Icon(Icons.chevron_right, size: 18, color: Color(0xFF9CA3AF)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Toggle that lets the user turn biometric (Face ID / Touch ID / fingerprint /
+/// device passcode) login on or off. Enabling it requires a successful
+/// biometric check so we never enable it for someone who can't pass it.
+class _BiometricToggleTile extends StatefulWidget {
+  const _BiometricToggleTile();
+
+  @override
+  State<_BiometricToggleTile> createState() => _BiometricToggleTileState();
+}
+
+class _BiometricToggleTileState extends State<_BiometricToggleTile> {
+  final _biometric = AppDependencies.instance.biometricService;
+  final _tokenStorage = AppDependencies.instance.tokenStorage;
+  final _session = AppDependencies.instance.sessionService;
+
+  bool _enabled = false;
+  bool _available = false;
+  bool _busy = false;
+  String _label = 'Biometric';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final available = await _biometric.canAuthenticate();
+    final enabled = await _biometric.isEnabled();
+    final label = await _biometric.primaryLabel();
+    if (!mounted) return;
+    setState(() {
+      _available = available;
+      _enabled = enabled;
+      _label = label;
+    });
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _onToggle(bool value) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      if (value) {
+        if (!await _biometric.canAuthenticate()) {
+          _snack(
+            'Set up Face ID, fingerprint, or a device passcode in Settings '
+            'first.',
+          );
+          return;
+        }
+        // We store the password entered at login so biometric login can sign in
+        // again later (even after sign-out). It's only in memory this session.
+        final userId = _session.lastUserId;
+        final password = _session.lastPassword;
+        if (userId == null ||
+            userId.isEmpty ||
+            password == null ||
+            password.isEmpty) {
+          _snack(
+            'Please sign out and sign in again, then enable $_label login.',
+          );
+          return;
+        }
+        final ok = await _biometric.authenticate(
+          reason: 'Confirm to enable $_label login',
+        );
+        if (!ok) {
+          _snack('Authentication cancelled. $_label login not enabled.');
+          return;
+        }
+        await _tokenStorage.setBiometricCredentials(
+          userId: userId,
+          password: password,
+        );
+        await _biometric.setEnabled(true);
+        if (!mounted) return;
+        setState(() => _enabled = true);
+        _snack('$_label login enabled.');
+      } else {
+        await _biometric.setEnabled(false);
+        await _tokenStorage.clearBiometricCredentials();
+        if (!mounted) return;
+        setState(() => _enabled = false);
+        _snack('$_label login disabled.');
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = !_available
+        ? 'Not available on this device'
+        : _enabled
+            ? 'Use $_label to sign in'
+            : 'Sign in faster with $_label';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.fingerprint,
+              size: 20,
+              color: Color(0xFFD32F2F),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Biometric Login',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A2E),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: _enabled,
+            onChanged: (_available && !_busy) ? _onToggle : null,
+            activeThumbColor: const Color(0xFFD32F2F),
+          ),
+        ],
       ),
     );
   }
