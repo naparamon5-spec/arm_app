@@ -83,9 +83,11 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
         '${dir.path}/QT${widget.quoteNumber}_${widget.type}.pdf',
       );
       await file.writeAsBytes(bytes);
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: widget.title,
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: widget.title,
+        ),
       );
     } catch (e) {
       if (!mounted) return;
