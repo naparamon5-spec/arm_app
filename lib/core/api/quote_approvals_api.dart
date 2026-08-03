@@ -69,8 +69,9 @@ class QuoteApprovalsApi {
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      if (kDebugMode) debugPrint(
-          '[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
+      if (kDebugMode)
+        debugPrint(
+            '[QuoteApi] list error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve approvals');
     }
   }
@@ -86,8 +87,9 @@ class QuoteApprovalsApi {
       return _asRowList(data);
     } on DioException catch (e) {
       // ignore: avoid_print
-      if (kDebugMode) debugPrint(
-          '[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
+      if (kDebugMode)
+        debugPrint(
+            '[QuoteApi] recent error: type=${e.type} status=${e.response?.statusCode} msg=${e.message} err=${e.error}');
       _client.throwFromDio(e, 'Failed to retrieve recent approvals');
     }
   }
@@ -104,8 +106,9 @@ class QuoteApprovalsApi {
       return Map<String, dynamic>.from(response.data ?? {});
     } on DioException catch (e) {
       // ignore: avoid_print
-      if (kDebugMode) debugPrint(
-          '[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
+      if (kDebugMode)
+        debugPrint(
+            '[QuoteApi] getQuote error: type=${e.type} status=${e.response?.statusCode} data=${e.response?.data}');
       _client.throwFromDio(e, 'Failed to retrieve quote');
     }
   }
@@ -154,8 +157,9 @@ class QuoteApprovalsApi {
       return Uint8List.fromList(response.data ?? const []);
     } on DioException catch (e) {
       // ignore: avoid_print
-      if (kDebugMode) debugPrint('[QuoteApi] downloadFile error: filename=$filename '
-          'status=${e.response?.statusCode} msg=${e.message}');
+      if (kDebugMode)
+        debugPrint('[QuoteApi] downloadFile error: filename=$filename '
+            'status=${e.response?.statusCode} msg=${e.message}');
       _client.throwFromDio(e, 'Failed to download file');
     }
   }

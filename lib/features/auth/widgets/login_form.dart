@@ -131,8 +131,8 @@ class _LoginFormState extends State<LoginForm> {
                       fontWeight: FontWeight.w400,
                       color: Color(0xFF1A1A2E),
                     ),
-                    decoration: _fieldDecoration(hint: 'ENTER PASSWORD')
-                        .copyWith(
+                    decoration:
+                        _fieldDecoration(hint: 'ENTER PASSWORD').copyWith(
                       contentPadding: const EdgeInsets.only(
                         top: 10,
                         bottom: 10,
