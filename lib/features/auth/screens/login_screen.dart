@@ -13,8 +13,8 @@ class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   static const _privacyPolicyUrl =
-      'https://arm.ardentnetworks.com.ph/privacy-policy';
-  static const _supportUrl = 'https://arm.ardentnetworks.com.ph/support';
+      'https://arm.ardentnetworks.com.ph/#/privacy-policy';
+  static const _supportUrl = 'https://arm.ardentnetworks.com.ph/#/support';
 
   Future<void> _openUrl(String url) async {
     final uri = Uri.parse(url);
