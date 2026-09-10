@@ -28,7 +28,8 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
   late final TabController _tabController;
   late final QuoteDetailController _controller;
 
-  /// Remarks collected up-front for negative-GP quotes, reused on approve.
+  /// Remarks captured for negative-GP quotes when the approver taps Approve,
+  /// reused if the approve call needs to be retried.
   String? _approverRemarks;
 
   @override
@@ -37,33 +38,8 @@ class _QuoteDetailScreenState extends State<QuoteDetailScreen>
     _controller = QuoteDetailController();
     _controller.loadQuote(widget.quote);
     _tabController = TabController(length: 4, vsync: this);
-    // Negative-GP quotes require approver remarks — ask for them as soon as the
-    // detail opens so they're ready when the manager approves.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _maybePromptOnOpen());
-  }
-
-  Future<void> _maybePromptOnOpen() async {
-    final quote = _controller.quote ?? widget.quote;
-    if (!quote.requiresRemarksOnApprove) return;
-    final remarks = await _promptRemarks();
-    if (!mounted) return;
-    if (remarks != null && remarks.isNotEmpty) {
-      // "Submit & Approve" on the remarks dialog *is* the approval action for
-      // negative-GP quotes — send it straight to the approve API (the dialog
-      // already served as the confirmation, so no second prompt).
-      _approverRemarks = remarks;
-      await _doApprove(remarks);
-    } else {
-      // Remarks are mandatory for negative-GP quotes — if the approver backs
-      // out instead of entering them, leave the detail screen. Drop keyboard
-      // focus first and defer the pop a frame so the dialog's focus scope is
-      // fully torn down before this route is removed (avoids the
-      // _FocusInheritedScope "_dependents.isEmpty" assertion).
-      FocusManager.instance.primaryFocus?.unfocus();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.of(context).pop();
-      });
-    }
+    // Negative-GP quotes are viewed first; the mandatory approver-remarks
+    // dialog is raised only when the approver taps Approve (see [_onApprove]).
   }
 
   @override

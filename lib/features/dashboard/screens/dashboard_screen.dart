@@ -5,6 +5,7 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/date_formatter.dart';
+import '../../../shared/controllers/main_tab_controller.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -20,12 +21,42 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  MainTabController? _tabController;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<DashboardController>().loadDashboard();
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The MainScreen keeps this screen alive inside an IndexedStack, so
+    // initState runs only once. Listen for tab changes and silently refresh
+    // whenever the dashboard regains focus, so the "recent pending approvals"
+    // list reflects quotes changed elsewhere (e.g. edited out of negative GP).
+    final tabController = context.read<MainTabController>();
+    if (!identical(tabController, _tabController)) {
+      _tabController?.removeListener(_onTabChanged);
+      _tabController = tabController;
+      _tabController!.addListener(_onTabChanged);
+    }
+  }
+
+  void _onTabChanged() {
+    const dashboardTabIndex = 0;
+    if (mounted && _tabController?.index == dashboardTabIndex) {
+      context.read<DashboardController>().loadDashboard(silent: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController?.removeListener(_onTabChanged);
+    super.dispose();
   }
 
   @override
