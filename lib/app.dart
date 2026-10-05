@@ -89,7 +89,9 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
 
       if (!mounted || current == null || remote == null) return;
 
-      if (!AppVersionService.isUpdateRequired(current, remote.latestVersion)) {
+      // Two-tier gate: below min → forced wall, below latest → soft prompt.
+      final action = AppVersionService.decideUpdate(current, remote);
+      if (action == AppUpdateAction.none) {
         _versionUpToDate = true;
         _suppressVersionPromptUntil = null;
         return;
@@ -104,11 +106,17 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
       _versionDialogVisible = true;
       _lastVersionPromptAt = DateTime.now();
 
-      final updateInitiated = await showForceUpdateDialog(
-        context: dialogContext,
-        remote: remote,
-        current: current,
-      );
+      final updateInitiated = action == AppUpdateAction.forced
+          ? await showForceUpdateDialog(
+              context: dialogContext,
+              remote: remote,
+              current: current,
+            )
+          : await showSoftUpdateDialog(
+              context: dialogContext,
+              remote: remote,
+              current: current,
+            );
 
       if (!mounted) return;
       _versionDialogVisible = false;

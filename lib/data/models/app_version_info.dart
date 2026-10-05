@@ -2,11 +2,21 @@ class AppVersionInfo {
   const AppVersionInfo({
     required this.latestVersion,
     required this.downloadUrl,
+    this.minSupportedVersion,
   });
 
+  /// Newest shipped version. Clients below this get a dismissible prompt.
   final AppComparableVersion latestVersion;
+
+  /// Oldest version the backend still supports. Clients below this get a
+  /// blocking "update required" wall. Null → soft prompt only.
+  final AppComparableVersion? minSupportedVersion;
+
   final Uri downloadUrl;
 }
+
+/// Launch-time decision for the version gate.
+enum AppUpdateAction { none, soft, forced }
 
 /// Compares semver only (e.g. `3.1.2`). Build numbers are ignored.
 class AppComparableVersion implements Comparable<AppComparableVersion> {

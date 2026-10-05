@@ -35,6 +35,20 @@ class AppVersionService {
     return installed < latest;
   }
 
+  /// Classifies the installed version against the backend's min + latest.
+  /// Below [AppVersionInfo.minSupportedVersion] → forced wall.
+  /// Below [AppVersionInfo.latestVersion] (but at/above min) → soft prompt.
+  /// Otherwise → none.
+  static AppUpdateAction decideUpdate(
+    AppComparableVersion installed,
+    AppVersionInfo remote,
+  ) {
+    final min = remote.minSupportedVersion;
+    if (min != null && installed < min) return AppUpdateAction.forced;
+    if (installed < remote.latestVersion) return AppUpdateAction.soft;
+    return AppUpdateAction.none;
+  }
+
   Future<AppVersionInfo?> fetchLatestVersion({
     Uri? endpoint,
     Duration timeout = const Duration(seconds: 10),
@@ -55,6 +69,13 @@ class AppVersionService {
       // "no update available" and fail open.
       final latestStr = payload['version']?.toString().trim();
       final urlStr = payload['url']?.toString().trim();
+      // Optional floor — null means "no forced update, soft prompt only".
+      final minStr = (payload['min_version'] ??
+              payload['minVersion'] ??
+              payload['min_supported_version'] ??
+              payload['minSupportedVersion'])
+          ?.toString()
+          .trim();
 
       if (latestStr == null || latestStr.isEmpty) return null;
       if (urlStr == null || urlStr.isEmpty) return null;
@@ -65,7 +86,13 @@ class AppVersionService {
       final url = Uri.tryParse(urlStr);
       if (url == null) return null;
 
-      return AppVersionInfo(latestVersion: latest, downloadUrl: url);
+      return AppVersionInfo(
+        latestVersion: latest,
+        downloadUrl: url,
+        minSupportedVersion: (minStr == null || minStr.isEmpty)
+            ? null
+            : AppComparableVersion.tryParse(minStr),
+      );
     } catch (e) {
       debugPrint('fetchLatestVersion failed: $e');
       return null;
@@ -92,6 +119,85 @@ class AppVersionService {
   void dispose() {
     _client.close();
   }
+}
+
+/// Dismissible "update available" prompt. Routes to Cupertino on iOS,
+/// Material on Android. Returns `true` if the user tapped "Update".
+Future<bool> showSoftUpdateDialog({
+  required BuildContext context,
+  required AppVersionInfo remote,
+  required AppComparableVersion current,
+}) async {
+  var updateInitiated = false;
+  if (Platform.isIOS) {
+    await showCupertinoDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => CupertinoAlertDialog(
+        title: const Text('Update Available'),
+        content: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Text(
+            'A newer version of ARM is available '
+            '(${remote.latestVersion}). Update now for improvements and fixes.',
+            style: const TextStyle(fontSize: 13, height: 1.35),
+          ),
+        ),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Later'),
+          ),
+          CupertinoDialogAction(
+            isDefaultAction: true,
+            onPressed: () async {
+              final ok = await _launchUpdate(
+                remote.downloadUrl,
+                messengerContext: dialogContext,
+              );
+              if (!ok || !dialogContext.mounted) return;
+              updateInitiated = true;
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  } else {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)),
+        title: const Text('Update Available'),
+        content: Text(
+          'A newer version of ARM is available (${remote.latestVersion}). '
+          'Update now for improvements and fixes.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Later'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final ok = await _launchUpdate(
+                remote.downloadUrl,
+                messengerContext: dialogContext,
+              );
+              if (!ok || !dialogContext.mounted) return;
+              updateInitiated = true;
+              Navigator.of(dialogContext).pop();
+            },
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+  }
+  return updateInitiated;
 }
 
 /// Shows the non-dismissible force-update dialog. Uses a native iOS
