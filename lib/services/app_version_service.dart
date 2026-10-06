@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
@@ -115,8 +114,18 @@ class AppVersionService {
     }
   }
 
+
+  /// Fire-and-forget, matching HRIS/E-Forward: iOS reports `launchUrl`'s
+  /// result unreliably, so only a thrown exception counts as failure.
   Future<bool> launchDownload(Uri url) async {
-    return launchUrl(url, mode: LaunchMode.externalApplication);
+    try {
+      // ignore: unawaited_futures
+      launchUrl(url, mode: LaunchMode.externalApplication);
+      return true;
+    } catch (e) {
+      debugPrint('launchDownload failed: $e');
+      return false;
+    }
   }
 
   void dispose() {
@@ -124,381 +133,309 @@ class AppVersionService {
   }
 }
 
-/// Dismissible "update available" prompt. Routes to Cupertino on iOS,
-/// Material on Android. Returns `true` if the user tapped "Update".
+const Color _kBrandRed = AppColors.primary;
+const Color _kBrandRedDark = AppColors.primaryDark;
+const Color _kMuted = AppColors.textSecondary;
+
+Future<void> _openUpdate(AppVersionInfo remote) async {
+  final svc = AppVersionService();
+  try {
+    await svc.launchDownload(remote.downloadUrl);
+  } finally {
+    svc.dispose();
+  }
+}
+
+/// Dismissible "update available" card. Returns `true` if the user tapped
+/// Update.
 Future<bool> showSoftUpdateDialog({
   required BuildContext context,
   required AppVersionInfo remote,
   required AppComparableVersion current,
 }) async {
   var updateInitiated = false;
-  if (Platform.isIOS) {
-    await showCupertinoDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => CupertinoAlertDialog(
-        title: const Text('Update Available'),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(
-            'A newer version of ARM is available '
-            '(${remote.latestVersion}). Update now for improvements and fixes.',
-            style: const TextStyle(fontSize: 13, height: 1.35),
-          ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Later'),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () async {
-              final ok = await _launchUpdate(
-                remote.downloadUrl,
-                messengerContext: dialogContext,
-              );
-              if (!ok || !dialogContext.mounted) return;
-              updateInitiated = true;
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  } else {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20)),
-        title: const Text('Update Available'),
-        content: Text(
-          'A newer version of ARM is available (${remote.latestVersion}). '
-          'Update now for improvements and fixes.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Later'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              final ok = await _launchUpdate(
-                remote.downloadUrl,
-                messengerContext: dialogContext,
-              );
-              if (!ok || !dialogContext.mounted) return;
-              updateInitiated = true;
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Update'),
-          ),
-        ],
-      ),
-    );
-  }
+  await showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierColor: Colors.black.withValues(alpha: 0.45),
+    builder: (dialogContext) => _SoftUpdateCard(
+      onLater: () => Navigator.of(dialogContext).pop(),
+      onUpdate: () {
+        // Pop first, then launch — iOS won't leave the app mid-dismiss.
+        Navigator.of(dialogContext).pop();
+        updateInitiated = true;
+        _openUpdate(remote);
+      },
+    ),
+  );
   return updateInitiated;
 }
 
-/// Shows the non-dismissible force-update dialog. Uses a native iOS
-/// (Cupertino) alert on iOS and a modern Material sheet on Android. Returns
-/// `true` if the user tapped "Update Now" and the download link opened.
+/// Full-screen mandatory-update wall. Never dismisses itself: the user must
+/// install the new build to get past it.
 Future<bool> showForceUpdateDialog({
   required BuildContext context,
   required AppVersionInfo remote,
   required AppComparableVersion current,
 }) async {
-  if (Platform.isIOS) {
-    return _showCupertinoUpdateDialog(
-      context: context,
-      remote: remote,
-      current: current,
-    );
-  }
-  return _showMaterialUpdateDialog(
-    context: context,
-    remote: remote,
-    current: current,
+  final result = await Navigator.of(context, rootNavigator: true).push<bool>(
+    PageRouteBuilder<bool>(
+      opaque: true,
+      fullscreenDialog: true,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (_, __, ___) => _ForceUpdateScreen(remote: remote),
+      transitionsBuilder: (_, anim, __, child) =>
+          FadeTransition(opacity: anim, child: child),
+    ),
   );
+  return result ?? false;
 }
 
-/// Opens the download/store link. Returns true when the link was launched.
-/// Surfaces a message via [messengerContext] when it can't be opened.
-Future<bool> _launchUpdate(
-  Uri url, {
-  required BuildContext messengerContext,
-}) async {
-  final svc = AppVersionService();
-  try {
-    final ok = await svc.launchDownload(url);
-    if (!ok && messengerContext.mounted) {
-      ScaffoldMessenger.maybeOf(messengerContext)?.showSnackBar(
-        const SnackBar(
-          content: Text('Unable to open the update link. Please try again.'),
-        ),
-      );
+class _ForceUpdateScreen extends StatefulWidget {
+  const _ForceUpdateScreen({required this.remote});
+
+  final AppVersionInfo remote;
+
+  @override
+  State<_ForceUpdateScreen> createState() => _ForceUpdateScreenState();
+}
+
+class _ForceUpdateScreenState extends State<_ForceUpdateScreen> {
+  bool _busy = false;
+
+  Future<void> _handleUpdate() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await _openUpdate(widget.remote);
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
-    return ok;
-  } catch (e) {
-    debugPrint('Update launch failed: $e');
-    return false;
-  } finally {
-    svc.dispose();
   }
-}
-
-// ── iOS — native Cupertino alert ────────────────────────────────────────────
-Future<bool> _showCupertinoUpdateDialog({
-  required BuildContext context,
-  required AppVersionInfo remote,
-  required AppComparableVersion current,
-}) async {
-  var updateInitiated = false;
-
-  await showCupertinoDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return PopScope(
-        canPop: false,
-        child: CupertinoAlertDialog(
-          title: const Padding(
-            padding: EdgeInsets.only(bottom: 6),
-            child: Text('Update Required'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'A newer version of ARM is available. Please update to '
-                'continue.',
-                style: TextStyle(fontSize: 13, height: 1.35),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: CupertinoColors.systemGrey6,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '$current',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: CupertinoColors.systemGrey,
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Icon(CupertinoIcons.arrow_right,
-                          size: 14, color: CupertinoColors.systemGrey),
-                    ),
-                    Text(
-                      '${remote.latestVersion}',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () async {
-                final ok = await _launchUpdate(
-                  remote.downloadUrl,
-                  messengerContext: dialogContext,
-                );
-                if (!ok || !dialogContext.mounted) return;
-                updateInitiated = true;
-                Navigator.of(dialogContext).pop();
-              },
-              child: const Text('Update Now'),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-
-  return updateInitiated;
-}
-
-// ── Android — modern Material sheet ──────────────────────────────────────────
-Future<bool> _showMaterialUpdateDialog({
-  required BuildContext context,
-  required AppVersionInfo remote,
-  required AppComparableVersion current,
-}) async {
-  var updateInitiated = false;
-
-  await showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (dialogContext) {
-      return PopScope(
-        canPop: false,
-        child: Dialog(
-          backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon badge
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.primary.withValues(alpha: 0.10),
-                  ),
-                  child: const Icon(
-                    Icons.system_update_rounded,
-                    size: 34,
-                    color: AppColors.primary,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                const Text(
-                  'Update Required',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'A newer version of ARM is available. Please update to '
-                  'keep using the app.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    height: 1.4,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                // Current → Latest chips
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _VersionChip(label: 'Current', value: '$current'),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Icon(Icons.arrow_forward_rounded,
-                          size: 18, color: AppColors.textMuted),
-                    ),
-                    _VersionChip(
-                      label: 'Latest',
-                      value: '${remote.latestVersion}',
-                      highlight: true,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    icon: const Icon(Icons.download_rounded, size: 20),
-                    label: const Text(
-                      'Update Now',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    onPressed: () async {
-                      final ok = await _launchUpdate(
-                        remote.downloadUrl,
-                        messengerContext: dialogContext,
-                      );
-                      if (!ok || !dialogContext.mounted) return;
-                      updateInitiated = true;
-                      Navigator.of(dialogContext).pop();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-
-  return updateInitiated;
-}
-
-/// Small "Current / Latest" version pill used in the Material update dialog.
-class _VersionChip extends StatelessWidget {
-  const _VersionChip({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
-
-  final String label;
-  final String value;
-  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.4,
-            color: AppColors.textMuted,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_kBrandRed, _kBrandRedDark],
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: highlight
-                ? AppColors.primary.withValues(alpha: 0.10)
-                : const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: highlight ? AppColors.primary : AppColors.textPrimary,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 28),
+              child: Column(
+                children: [
+                  const Spacer(),
+                  Container(
+                    height: 112,
+                    width: 112,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(Icons.system_update_rounded,
+                        color: Colors.white, size: 56),
+                  ),
+                  const SizedBox(height: 28),
+                  const Text(
+                    'Time to update',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'We’ve made important improvements to keep ARM running '
+                    'smoothly. Install the latest version to continue.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: Colors.white, fontSize: 15.5, height: 1.5),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _busy ? null : _handleUpdate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: _kBrandRed,
+                        disabledBackgroundColor:
+                            Colors.white.withValues(alpha: 0.7),
+                        disabledForegroundColor: _kBrandRed,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        textStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w800),
+                      ),
+                      child: _busy
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.6,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(_kBrandRed),
+                              ),
+                            )
+                          : const Text('Update Now'),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
-      ],
+      ),
+    );
+  }
+}
+
+class _SoftUpdateCard extends StatelessWidget {
+  const _SoftUpdateCard({required this.onUpdate, required this.onLater});
+
+  final VoidCallback onUpdate;
+  final VoidCallback onLater;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 380),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 40,
+              offset: const Offset(0, 18),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [_kBrandRed, _kBrandRedDark],
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    height: 72,
+                    width: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(Icons.cloud_download_rounded,
+                        color: Colors.white, size: 36),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'A fresh update is here',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const Text(
+                    'Enjoy a smoother experience with the latest '
+                    'improvements and fixes. Update when you’re ready.',
+                    textAlign: TextAlign.center,
+                    style:
+                        TextStyle(color: _kMuted, fontSize: 14.5, height: 1.45),
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: TextButton(
+                            onPressed: onLater,
+                            style: TextButton.styleFrom(
+                              foregroundColor: _kMuted,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                side: const BorderSide(
+                                    color: Color(0xFFE5E7EB), width: 1.2),
+                              ),
+                              textStyle: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w700),
+                            ),
+                            child: const Text('Later'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: onUpdate,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _kBrandRed,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              textStyle: const TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.w700),
+                            ),
+                            child: const Text('Update'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

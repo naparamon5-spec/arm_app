@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
@@ -59,10 +57,8 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
   }
 
   Future<void> _enforceLatestVersionIfNeeded({bool fromResume = false}) async {
-    // Android only. iOS updates are delivered exclusively through the App
-    // Store; showing a custom force-update dialog that links to an external
-    // (APK) download would violate App Store Review Guidelines 2.4.5 / 3.2.2.
-    if (!Platform.isAndroid) return;
+    // Runs on both platforms: the backend returns an App Store link for iOS
+    // and the APK URL for Android.
     if (_versionUpToDate || _versionDialogVisible || _versionCheckInProgress) {
       return;
     }

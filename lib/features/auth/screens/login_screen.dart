@@ -76,13 +76,7 @@ class LoginScreen extends StatelessWidget {
                           );
                         }
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            LoginForm(onSuccess: goToDashboard),
-                            _BiometricUnlockButton(onUnlocked: goToDashboard),
-                          ],
-                        );
+                        return _LoginBody(onSuccess: goToDashboard);
                       },
                     ),
                     const SizedBox(height: 40),
@@ -144,25 +138,27 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-/// Biometric login icon shown below the LOGIN button — eForward style. It is
-/// only rendered when the user has enabled the biometric toggle AND a saved
-/// session exists AND the device can authenticate. The icon and label follow
-/// the device's own method (Face ID / Touch ID / Fingerprint / PIN). Tapping it
-/// authenticates and restores the saved session straight into the app.
-class _BiometricUnlockButton extends StatefulWidget {
-  final VoidCallback onUnlocked;
+/// Biometric-first login body. When biometric login is enabled, the device
+/// can authenticate, and credentials are stored, only the biometric panel is
+/// shown — the email/password form stays hidden behind "Use password instead".
+/// Otherwise the normal password form is shown.
+class _LoginBody extends StatefulWidget {
+  final VoidCallback onSuccess;
 
-  const _BiometricUnlockButton({required this.onUnlocked});
+  const _LoginBody({required this.onSuccess});
 
   @override
-  State<_BiometricUnlockButton> createState() => _BiometricUnlockButtonState();
+  State<_LoginBody> createState() => _LoginBodyState();
 }
 
-class _BiometricUnlockButtonState extends State<_BiometricUnlockButton> {
+class _LoginBodyState extends State<_LoginBody> {
   final _deps = AppDependencies.instance;
 
-  bool _show = false;
+  bool _loaded = false;
+  bool _bioAvailable = false;
+  bool _usePassword = false;
   bool _busy = false;
+  String? _savedUserId;
   BiometricMethod _method = BiometricMethod.fingerprint;
   String _label = '';
 
@@ -173,18 +169,17 @@ class _BiometricUnlockButtonState extends State<_BiometricUnlockButton> {
   }
 
   Future<void> _evaluate() async {
-    // Show only when biometric login is enabled, the device can authenticate,
-    // and credentials have been stored — these survive sign-out, so the button
-    // stays available after the user logs out.
     final enabled = await _deps.biometricService.isEnabled();
     final available = await _deps.biometricService.canAuthenticate();
-    final hasCreds = await _deps.tokenStorage.hasBiometricCredentials();
+    final creds = await _deps.tokenStorage.biometricCredentials();
     final method = await _deps.biometricService.resolveMethod();
     if (!mounted) return;
     setState(() {
-      _show = enabled && available && hasCreds;
+      _bioAvailable = enabled && available && creds != null;
+      _savedUserId = creds?.userId;
       _method = method;
       _label = _deps.biometricService.labelFor(method);
+      _loaded = true;
     });
   }
 
@@ -194,13 +189,11 @@ class _BiometricUnlockButtonState extends State<_BiometricUnlockButton> {
         BiometricMethod.pin => Icons.dialpad,
       };
 
-  Future<void> _onTap() async {
+  Future<void> _unlock() async {
     if (_busy) return;
-    // Captured before any await so we never touch context across an async gap.
     final auth = context.read<AuthController>();
     setState(() => _busy = true);
 
-    // 1. Device authentication (Face ID / Touch ID / fingerprint / passcode).
     final ok = await _deps.biometricService.authenticate(
       reason: 'Log in to ARM',
       biometricOnly: _method != BiometricMethod.pin,
@@ -211,14 +204,12 @@ class _BiometricUnlockButtonState extends State<_BiometricUnlockButton> {
       return;
     }
 
-    // 2. Replay the stored credentials through the normal login flow so a fresh
-    //    session is issued (works even after sign-out revoked the old tokens).
     final creds = await _deps.tokenStorage.biometricCredentials();
     if (creds == null) {
       if (!mounted) return;
       setState(() {
         _busy = false;
-        _show = false;
+        _bioAvailable = false;
       });
       return;
     }
@@ -226,68 +217,119 @@ class _BiometricUnlockButtonState extends State<_BiometricUnlockButton> {
     await auth.login(
       userId: creds.userId,
       password: creds.password,
-      onSuccess: widget.onUnlocked,
+      onSuccess: widget.onSuccess,
     );
     if (!mounted) return;
 
-    // If login failed (e.g. the password was changed on the backend), the
-    // stored credentials are stale — clear them and disable biometric login so
-    // the user falls back to the password form.
+    // Stale credentials (e.g. password changed on the backend): drop them and
+    // fall back to the password form.
     if (!_deps.sessionService.isLoggedIn) {
       await _deps.biometricService.setEnabled(false);
       await _deps.tokenStorage.clearBiometricCredentials();
       if (!mounted) return;
-      setState(() => _show = false);
+      setState(() => _bioAvailable = false);
     }
     setState(() => _busy = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_show) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Center(
-        child: GestureDetector(
-          onTap: _busy ? null : _onTap,
+    if (!_loaded) return const SizedBox(height: 200);
+
+    if (!_bioAvailable || _usePassword) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LoginForm(onSuccess: widget.onSuccess),
+          if (_bioAvailable)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Center(
+                child: TextButton.icon(
+                  onPressed: () => setState(() => _usePassword = false),
+                  icon: Icon(_icon, color: const Color(0xFFD32F2F)),
+                  label: Text(
+                    'Use $_label instead',
+                    style: const TextStyle(
+                      color: Color(0xFFD32F2F),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    return Column(
+      children: [
+        if (_savedUserId != null) ...[
+          const Text(
+            'Signing in as',
+            style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280)),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF4F7F8),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Text(
+              _savedUserId!,
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+            ),
+          ),
+          const SizedBox(height: 32),
+        ],
+        GestureDetector(
+          onTap: _busy ? null : _unlock,
           behavior: HitTestBehavior.opaque,
           child: Column(
             children: [
               Container(
-                width: 60,
-                height: 60,
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: const Color(0xFFD32F2F),
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFD32F2F), width: 1.5),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: _busy
                     ? const Padding(
-                        padding: EdgeInsets.all(18),
+                        padding: EdgeInsets.all(28),
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor:
                               AlwaysStoppedAnimation<Color>(Color(0xFFD32F2F)),
                         ),
                       )
-                    : Icon(_icon, size: 30, color: const Color(0xFFD32F2F)),
+                    : Icon(_icon, size: 44, color: const Color(0xFFD32F2F)),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
-                _label,
+                'Sign in with $_label',
                 style: const TextStyle(
-                  color: Colors.black54,
-                  fontSize: 12,
+                  color: Colors.black87,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  letterSpacing: 0.3,
                 ),
               ),
             ],
           ),
         ),
-      ),
+        const SizedBox(height: 28),
+        TextButton(
+          onPressed: _busy ? null : () => setState(() => _usePassword = true),
+          child: const Text(
+            'Use password instead',
+            style: TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
