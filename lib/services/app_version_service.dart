@@ -24,8 +24,11 @@ class AppVersionService {
 
   final http.Client _client;
 
-  static Uri get _defaultVersionEndpoint =>
-      Uri.parse('${ApiConfig.baseUrl}${ApiPaths.appVersion}');
+  // Without `platform` the backend defaults to android and hands iPhones the
+  // APK URL, which iOS can't open.
+  static Uri get _defaultVersionEndpoint => Uri.parse(
+      '${ApiConfig.baseUrl}${ApiPaths.appVersion}'
+      '?platform=${Platform.isIOS ? 'ios' : 'android'}');
 
   /// Returns true when [installed] is older than [latest] from the backend.
   static bool isUpdateRequired(
