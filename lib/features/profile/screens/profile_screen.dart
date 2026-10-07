@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:arm_app/core/widgets/face_id_icon.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -422,10 +423,11 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile>
     });
   }
 
-  IconData get _icon => switch (_method) {
-        BiometricMethod.face => Icons.face,
-        BiometricMethod.fingerprint => Icons.fingerprint,
-        BiometricMethod.pin => Icons.dialpad,
+  Widget _icon({double size = 24, Color? color}) => switch (_method) {
+        BiometricMethod.face => FaceIdIcon(size: size, color: color),
+        BiometricMethod.fingerprint =>
+          Icon(Icons.fingerprint, size: size, color: color),
+        BiometricMethod.pin => Icon(Icons.dialpad, size: size, color: color),
       };
 
   Future<void> _showSetupLockDialog() {
@@ -531,11 +533,13 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile>
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              _available ? _icon : Icons.lock_outline,
-              size: 20,
-              color: const Color(0xFFD32F2F),
-            ),
+            child: _available
+                ? _icon(size: 20, color: const Color(0xFFD32F2F))
+                : const Icon(
+                    Icons.lock_outline,
+                    size: 20,
+                    color: Color(0xFFD32F2F),
+                  ),
           ),
           const SizedBox(width: 12),
           Expanded(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:arm_app/core/widgets/face_id_icon.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -201,10 +202,11 @@ class _LoginBodyState extends State<_LoginBody> {
     });
   }
 
-  IconData get _icon => switch (_method) {
-        BiometricMethod.face => Icons.face,
-        BiometricMethod.fingerprint => Icons.fingerprint,
-        BiometricMethod.pin => Icons.dialpad,
+  Widget _icon({double size = 24, Color? color}) => switch (_method) {
+        BiometricMethod.face => FaceIdIcon(size: size, color: color),
+        BiometricMethod.fingerprint =>
+          Icon(Icons.fingerprint, size: size, color: color),
+        BiometricMethod.pin => Icon(Icons.dialpad, size: size, color: color),
       };
 
   Future<void> _unlock() async {
@@ -265,7 +267,7 @@ class _LoginBodyState extends State<_LoginBody> {
               child: Center(
                 child: TextButton.icon(
                   onPressed: () => setState(() => _usePassword = false),
-                  icon: Icon(_icon, color: const Color(0xFFD32F2F)),
+                  icon: _icon(color: const Color(0xFFD32F2F)),
                   label: Text(
                     'Use $_label instead',
                     style: const TextStyle(
@@ -332,7 +334,7 @@ class _LoginBodyState extends State<_LoginBody> {
                                 Color(0xFFD32F2F)),
                           ),
                         )
-                      : Icon(_icon, size: 44, color: const Color(0xFFD32F2F)),
+                      : _icon(size: 44, color: const Color(0xFFD32F2F)),
                 ),
                 const SizedBox(height: 12),
                 Text(
