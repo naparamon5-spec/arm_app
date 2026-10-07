@@ -49,6 +49,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _go(String route) {
     if (!mounted) return;
     Navigator.of(context).pushReplacementNamed(route);
+    AppRouter.splashDone.value = true;
   }
 
   @override

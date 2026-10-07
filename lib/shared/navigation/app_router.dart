@@ -13,6 +13,11 @@ class AppRouter {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
+  /// Flips to true once the splash has replaced itself with login/dashboard.
+  /// Dialogs shown before that would be swept away by the splash's
+  /// pushReplacement, so the launch version check waits on this.
+  static final ValueNotifier<bool> splashDone = ValueNotifier(false);
+
   static const String splash = '/splash';
   static const String login = '/login';
   static const String main = '/main';

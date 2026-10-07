@@ -22,16 +22,28 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Run the first check once the first frame is on screen so the navigator
-    // (and its overlay) exists for the dialog.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _enforceLatestVersionIfNeeded();
-    });
+    // Wait for the splash to hand off to login/dashboard: its pushReplacement
+    // would otherwise replace (dismiss) a dialog shown on top of it.
+    if (AppRouter.splashDone.value) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _enforceLatestVersionIfNeeded());
+    } else {
+      AppRouter.splashDone.addListener(_onSplashDone);
+    }
+  }
+
+  void _onSplashDone() {
+    if (!AppRouter.splashDone.value) return;
+    AppRouter.splashDone.removeListener(_onSplashDone);
+    // Let the new route's first frame settle before showing the dialog.
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _enforceLatestVersionIfNeeded());
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    AppRouter.splashDone.removeListener(_onSplashDone);
     super.dispose();
   }
 
@@ -58,7 +70,9 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
 
   Future<void> _enforceLatestVersionIfNeeded({bool fromResume = false}) async {
     // Runs on both platforms: the backend returns an App Store link for iOS
-    // and the APK URL for Android.
+    // and the APK URL for Android. Never before the splash hands off — a
+    // dialog shown over the splash gets replaced by its pushReplacement.
+    if (!AppRouter.splashDone.value) return;
     if (_versionUpToDate || _versionDialogVisible || _versionCheckInProgress) {
       return;
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/di/app_dependencies.dart';
@@ -126,6 +127,23 @@ class LoginScreen extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: Color(0xFF9CA3AF),
                       ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Matches the version line on the Profile screen.
+                    FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snap) {
+                        final v = snap.data?.version;
+                        return Text(
+                          v == null ? 'Version' : 'Version $v',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -262,74 +280,85 @@ class _LoginBodyState extends State<_LoginBody> {
       );
     }
 
-    return Column(
-      children: [
-        if (_savedUserId != null) ...[
-          const Text(
-            'Signing in as',
-            style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280)),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF4F7F8),
-              borderRadius: BorderRadius.circular(30),
+    // The parent Column is start-aligned; force full width so this panel
+    // centers on screen.
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // The biometric panel is much shorter than the password form; push it
+          // down so it sits in the middle of the free space, not under the logo.
+          SizedBox(height: MediaQuery.of(context).size.height * 0.04),
+          if (_savedUserId != null) ...[
+            const Text(
+              'Signing in as',
+              style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280)),
             ),
-            child: Text(
-              _savedUserId!,
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4F7F8),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Text(
+                _savedUserId!,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
+          GestureDetector(
+            onTap: _busy ? null : _unlock,
+            behavior: HitTestBehavior.opaque,
+            child: Column(
+              children: [
+                Container(
+                  width: 88,
+                  height: 88,
+                  decoration: BoxDecoration(
+                    border:
+                        Border.all(color: const Color(0xFFD32F2F), width: 1.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: _busy
+                      ? const Padding(
+                          padding: EdgeInsets.all(28),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFD32F2F)),
+                          ),
+                        )
+                      : Icon(_icon, size: 44, color: const Color(0xFFD32F2F)),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Sign in with $_label',
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+          TextButton(
+            onPressed: _busy ? null : () => setState(() => _usePassword = true),
+            child: const Text(
+              'Use password instead',
+              style: TextStyle(
+                color: Color(0xFF6B7280),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
-        GestureDetector(
-          onTap: _busy ? null : _unlock,
-          behavior: HitTestBehavior.opaque,
-          child: Column(
-            children: [
-              Container(
-                width: 88,
-                height: 88,
-                decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFD32F2F), width: 1.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: _busy
-                    ? const Padding(
-                        padding: EdgeInsets.all(28),
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Color(0xFFD32F2F)),
-                        ),
-                      )
-                    : Icon(_icon, size: 44, color: const Color(0xFFD32F2F)),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Sign in with $_label',
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 28),
-        TextButton(
-          onPressed: _busy ? null : () => setState(() => _usePassword = true),
-          child: const Text(
-            'Use password instead',
-            style: TextStyle(
-              color: Color(0xFF6B7280),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

@@ -1,8 +1,11 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/di/app_dependencies.dart';
+import '../../../services/biometric_service.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
 import '../../../shared/widgets/app_error_widget.dart';
@@ -374,7 +377,8 @@ class _BiometricToggleTile extends StatefulWidget {
   State<_BiometricToggleTile> createState() => _BiometricToggleTileState();
 }
 
-class _BiometricToggleTileState extends State<_BiometricToggleTile> {
+class _BiometricToggleTileState extends State<_BiometricToggleTile>
+    with WidgetsBindingObserver {
   final _biometric = AppDependencies.instance.biometricService;
   final _tokenStorage = AppDependencies.instance.tokenStorage;
   final _session = AppDependencies.instance.sessionService;
@@ -383,23 +387,69 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
   bool _available = false;
   bool _busy = false;
   String _label = 'Biometric';
+  BiometricMethod _method = BiometricMethod.fingerprint;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Re-check when the user comes back from Settings after adding a passcode.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  // Priority (Face ID → Fingerprint → Pin Code) lives in resolveMethod().
   Future<void> _load() async {
     final available = await _biometric.canAuthenticate();
     final enabled = await _biometric.isEnabled();
-    final label = await _biometric.primaryLabel();
+    final method = await _biometric.resolveMethod();
     if (!mounted) return;
     setState(() {
       _available = available;
       _enabled = enabled;
-      _label = label;
+      _method = method;
+      _label = _biometric.labelFor(method);
     });
+  }
+
+  IconData get _icon => switch (_method) {
+        BiometricMethod.face => Icons.face,
+        BiometricMethod.fingerprint => Icons.fingerprint,
+        BiometricMethod.pin => Icons.dialpad,
+      };
+
+  Future<void> _showSetupLockDialog() {
+    final steps = Platform.isIOS
+        ? 'Open Settings → Face ID & Passcode (or Touch ID & Passcode) and '
+            'turn on a passcode. You can also add Face ID there.'
+        : 'Open Settings → Security (or Lock screen) and set a PIN, pattern, '
+            'or password. You can also add a fingerprint there.';
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set up a screen lock'),
+        content: Text(
+          'To use quick sign-in, your phone needs Face ID, a fingerprint, or '
+          'a passcode.\n\n$steps',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _snack(String message) {
@@ -415,10 +465,7 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
     try {
       if (value) {
         if (!await _biometric.canAuthenticate()) {
-          _snack(
-            'Set up Face ID, fingerprint, or a device passcode in Settings '
-            'first.',
-          );
+          await _showSetupLockDialog();
           return;
         }
         // We store the password entered at login so biometric login can sign in
@@ -464,7 +511,7 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
   @override
   Widget build(BuildContext context) {
     final subtitle = !_available
-        ? 'Not available on this device'
+        ? 'Set a passcode on your phone to turn this on'
         : _enabled
             ? 'Use $_label to sign in'
             : 'Sign in faster with $_label';
@@ -484,10 +531,10 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
               color: const Color(0xFFEEF2FF),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.fingerprint,
+            child: Icon(
+              _available ? _icon : Icons.lock_outline,
               size: 20,
-              color: Color(0xFFD32F2F),
+              color: const Color(0xFFD32F2F),
             ),
           ),
           const SizedBox(width: 12),
@@ -495,9 +542,9 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Biometric Login',
-                  style: TextStyle(
+                Text(
+                  _available ? '$_label Login' : 'Biometric Login',
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF1A1A2E),
@@ -517,7 +564,10 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile> {
           ),
           Switch(
             value: _enabled,
-            onChanged: (_available && !_busy) ? _onToggle : null,
+            // Tappable even with no screen lock, so we can explain how to set one.
+            onChanged: _busy
+                ? null
+                : (_available ? _onToggle : (_) => _showSetupLockDialog()),
             activeThumbColor: const Color(0xFFD32F2F),
           ),
         ],
