@@ -13,6 +13,11 @@ class ArdentApp extends StatefulWidget {
 
 class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
   bool _versionUpToDate = false;
+  // "Up to date" is only trusted for [_upToDateRecheckInterval]; after that a
+  // resume re-asks the server so a version released while the app sat in
+  // memory still prompts without killing the app from multitask.
+  DateTime? _upToDateCheckedAt;
+  static const _upToDateRecheckInterval = Duration(minutes: 1);
   bool _versionDialogVisible = false;
   bool _versionCheckInProgress = false;
   DateTime? _lastVersionPromptAt;
@@ -55,6 +60,12 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
   }
 
   Future<void> _recheckVersionAfterResume() async {
+    final checkedAt = _upToDateCheckedAt;
+    if (_versionUpToDate &&
+        checkedAt != null &&
+        DateTime.now().difference(checkedAt) >= _upToDateRecheckInterval) {
+      _versionUpToDate = false;
+    }
     if (_versionUpToDate || _versionDialogVisible || _versionCheckInProgress) {
       return;
     }
@@ -103,6 +114,7 @@ class _ArdentAppState extends State<ArdentApp> with WidgetsBindingObserver {
       final action = AppVersionService.decideUpdate(current, remote);
       if (action == AppUpdateAction.none) {
         _versionUpToDate = true;
+        _upToDateCheckedAt = DateTime.now();
         _suppressVersionPromptUntil = null;
         return;
       }
