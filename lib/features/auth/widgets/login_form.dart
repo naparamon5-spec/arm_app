@@ -1,13 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../../../core/di/app_dependencies.dart';
 import '../../../core/utils/validators.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginForm extends StatefulWidget {
   final VoidCallback onSuccess;
 
-  const LoginForm({super.key, required this.onSuccess});
+  /// Prefills the User ID (e.g. the saved biometric user when switching to
+  /// "Use password instead").
+  final String? initialUserId;
+
+  /// The saved Remember Me choice, loaded by the parent before this form is
+  /// built so the checkbox never flickers from its default.
+  final bool initialRememberMe;
+
+  /// Notifies the parent so a rebuilt form starts from the latest choice.
+  final ValueChanged<bool>? onRememberMeChanged;
+
+  const LoginForm({
+    super.key,
+    required this.onSuccess,
+    this.initialUserId,
+    this.initialRememberMe = true,
+    this.onRememberMeChanged,
+  });
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -19,6 +37,9 @@ class _LoginFormState extends State<LoginForm> {
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = true;
+  // Errors stay hidden until the first Login tap; after that, fields
+  // re-validate as the user edits so errors clear once fixed.
+  bool _submitted = false;
 
   static const _underlineBorder = UnderlineInputBorder(
     borderSide: BorderSide(color: Color(0xFFD32F2F), width: 1),
@@ -26,6 +47,14 @@ class _LoginFormState extends State<LoginForm> {
   static const _underlineBorderFocused = UnderlineInputBorder(
     borderSide: BorderSide(color: Color(0xFFD32F2F), width: 1.5),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = widget.initialUserId;
+    if (userId != null && userId.isNotEmpty) _userIdController.text = userId;
+    _rememberMe = widget.initialRememberMe;
+  }
 
   @override
   void dispose() {
@@ -40,6 +69,7 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _submit(AuthController controller) {
+    if (!_submitted) setState(() => _submitted = true);
     if (!_formKey.currentState!.validate()) return;
     controller.setRememberDevice(_rememberMe);
     controller.login(
@@ -106,7 +136,9 @@ class _LoginFormState extends State<LoginForm> {
                   color: Color(0xFF1A1A2E),
                 ),
                 decoration: _fieldDecoration(hint: 'ENTER YOUR USER ID'),
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                autovalidateMode: _submitted
+                    ? AutovalidateMode.onUserInteraction
+                    : AutovalidateMode.disabled,
               ),
               const SizedBox(height: 24),
               // PASSWORD
@@ -119,29 +151,17 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
               const SizedBox(height: 8),
-              Stack(
-                alignment: Alignment.centerRight,
-                children: [
-                  TextFormField(
-                    controller: _passwordController,
-                    validator: Validators.password,
-                    obscureText: _obscurePassword,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF1A1A2E),
-                    ),
-                    decoration:
-                        _fieldDecoration(hint: 'ENTER PASSWORD').copyWith(
-                      contentPadding: const EdgeInsets.only(
-                        top: 10,
-                        bottom: 10,
-                        right: 28,
-                      ),
-                    ),
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                  ),
-                  GestureDetector(
+              TextFormField(
+                controller: _passwordController,
+                validator: Validators.password,
+                obscureText: _obscurePassword,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF1A1A2E),
+                ),
+                decoration: _fieldDecoration(hint: 'ENTER PASSWORD').copyWith(
+                  suffixIcon: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
@@ -153,7 +173,14 @@ class _LoginFormState extends State<LoginForm> {
                       size: 20,
                     ),
                   ),
-                ],
+                  suffixIconConstraints: const BoxConstraints(
+                    minWidth: 28,
+                    minHeight: 20,
+                  ),
+                ),
+                autovalidateMode: _submitted
+                    ? AutovalidateMode.onUserInteraction
+                    : AutovalidateMode.disabled,
               ),
               const SizedBox(height: 20),
               // REMEMBER ME
@@ -161,7 +188,13 @@ class _LoginFormState extends State<LoginForm> {
                 children: [
                   Checkbox(
                     value: _rememberMe,
-                    onChanged: (v) => setState(() => _rememberMe = v ?? true),
+                    onChanged: (v) {
+                      final value = v ?? true;
+                      setState(() => _rememberMe = value);
+                      AppDependencies.instance.tokenStorage
+                          .setRememberMe(value);
+                      widget.onRememberMeChanged?.call(value);
+                    },
                     activeColor: const Color(0xFFD32F2F),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),

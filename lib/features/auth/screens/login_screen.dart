@@ -170,7 +170,7 @@ class _LoginBody extends StatefulWidget {
   State<_LoginBody> createState() => _LoginBodyState();
 }
 
-class _LoginBodyState extends State<_LoginBody> {
+class _LoginBodyState extends State<_LoginBody> with WidgetsBindingObserver {
   final _deps = AppDependencies.instance;
 
   bool _loaded = false;
@@ -178,13 +178,48 @@ class _LoginBodyState extends State<_LoginBody> {
   bool _usePassword = false;
   bool _busy = false;
   String? _savedUserId;
+  bool _rememberMe = true;
   BiometricMethod _method = BiometricMethod.fingerprint;
   String _label = '';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _evaluate();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // The user may have gone to device settings to add/remove a screen lock or
+  // enroll a face/finger; pick up the change as soon as they return.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && !_busy) _evaluate();
+  }
+
+  void _snack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// "Not you? Switch account": forget the saved biometric login so a
+  /// different user signs in fresh without inheriting it.
+  Future<void> _switchAccount() async {
+    await _deps.biometricService.setEnabled(false);
+    await _deps.tokenStorage.clearBiometricCredentials();
+    if (!mounted) return;
+    setState(() {
+      _bioAvailable = false;
+      _savedUserId = null;
+      _usePassword = false;
+    });
   }
 
   Future<void> _evaluate() async {
@@ -192,8 +227,10 @@ class _LoginBodyState extends State<_LoginBody> {
     final available = await _deps.biometricService.canAuthenticate();
     final creds = await _deps.tokenStorage.biometricCredentials();
     final method = await _deps.biometricService.resolveMethod();
+    final rememberMe = await _deps.tokenStorage.rememberMe;
     if (!mounted) return;
     setState(() {
+      _rememberMe = rememberMe;
       _bioAvailable = enabled && available && creds != null;
       _savedUserId = creds?.userId;
       _method = method;
@@ -214,13 +251,18 @@ class _LoginBodyState extends State<_LoginBody> {
     final auth = context.read<AuthController>();
     setState(() => _busy = true);
 
-    final ok = await _deps.biometricService.authenticate(
+    final result = await _deps.biometricService.authenticate(
       reason: 'Log in to ARM',
       biometricOnly: _method != BiometricMethod.pin,
     );
     if (!mounted) return;
-    if (!ok) {
+    if (!result.success) {
       setState(() => _busy = false);
+      // The OS already gave feedback on a cancel / bad scan; only speak up
+      // when there's something the user can act on.
+      if (!result.cancelled && result.message != null) {
+        _snack(result.message!);
+      }
       return;
     }
 
@@ -231,6 +273,8 @@ class _LoginBodyState extends State<_LoginBody> {
         _busy = false;
         _bioAvailable = false;
       });
+      _snack('$_label login is not set up. Sign in with your password once '
+          'to turn it back on.');
       return;
     }
 
@@ -241,14 +285,24 @@ class _LoginBodyState extends State<_LoginBody> {
     );
     if (!mounted) return;
 
-    // Stale credentials (e.g. password changed on the backend): drop them and
-    // fall back to the password form.
     if (!_deps.sessionService.isLoggedIn) {
-      await _deps.biometricService.setEnabled(false);
-      await _deps.tokenStorage.clearBiometricCredentials();
-      if (!mounted) return;
-      setState(() => _bioAvailable = false);
+      // Only a credential rejection (e.g. password changed on the backend)
+      // invalidates the saved login. A network/server hiccup must not wipe it,
+      // or the user loses biometric login just for being offline.
+      if (auth.lastErrorStatus == 400 ||
+          auth.lastErrorStatus == 401 ||
+          auth.lastErrorStatus == 403) {
+        await _deps.biometricService.setEnabled(false);
+        await _deps.tokenStorage.clearBiometricCredentials();
+        if (!mounted) return;
+        setState(() => _bioAvailable = false);
+        _snack('Your saved login is no longer valid. Please sign in with '
+            'your password.');
+      } else if (auth.errorMessage != null) {
+        _snack(auth.errorMessage!);
+      }
     }
+    if (!mounted) return;
     setState(() => _busy = false);
   }
 
@@ -260,7 +314,14 @@ class _LoginBodyState extends State<_LoginBody> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          LoginForm(onSuccess: widget.onSuccess),
+          LoginForm(
+            onSuccess: widget.onSuccess,
+            // Prefill the saved user only when they chose "Use password
+            // instead" — after "Switch account" the form stays blank.
+            initialUserId: _bioAvailable ? _savedUserId : null,
+            initialRememberMe: _rememberMe,
+            onRememberMeChanged: (v) => _rememberMe = v,
+          ),
           if (_bioAvailable)
             Padding(
               padding: const EdgeInsets.only(top: 16),
@@ -355,6 +416,16 @@ class _LoginBodyState extends State<_LoginBody> {
               'Use password instead',
               style: TextStyle(
                 color: Color(0xFF6B7280),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: _busy ? null : _switchAccount,
+            child: const Text(
+              'Not you? Switch account',
+              style: TextStyle(
+                color: Color(0xFFD32F2F),
                 fontWeight: FontWeight.w600,
               ),
             ),

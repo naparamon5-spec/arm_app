@@ -32,6 +32,18 @@ class SessionService {
 
   void setRememberDevice(bool value) => _rememberDevice = value;
 
+  /// Cold-start entry point. A session signed in with "Remember Me" off lasts
+  /// only until the app is closed, so it is discarded here before restoring.
+  /// (Not in [restoreSession], which also runs mid-session from Profile.)
+  Future<void> restoreOnLaunch() async {
+    if (await tokenStorage.isSessionOnly) {
+      await tokenStorage.clear();
+      _currentUser = null;
+      return;
+    }
+    await restoreSession();
+  }
+
   Future<void> restoreSession() async {
     final userId = await tokenStorage.userId;
     final accessToken = await tokenStorage.accessToken;
@@ -79,13 +91,16 @@ class SessionService {
     required String accessToken,
     required String refreshToken,
   }) async {
-    if (_rememberDevice) {
-      await tokenStorage.saveSession(
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-        userId: userId,
-      );
-    }
+    // Always persist: the API client reads tokens from storage, so skipping
+    // the write would leave requests unauthenticated (or using a previous
+    // session's tokens). "Remember Me" off instead marks the session to be
+    // discarded on the next cold start (see [restoreSession]).
+    await tokenStorage.saveSession(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      userId: userId,
+      sessionOnly: !_rememberDevice,
+    );
     _currentUser = _userFromToken(userId, accessToken);
   }
 

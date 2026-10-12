@@ -11,6 +11,8 @@ class TokenStorage {
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _userIdKey = 'user_id';
+  static const _sessionOnlyKey = 'session_only';
+  static const _rememberMeKey = 'remember_me';
   static const _biometricEnabledKey = 'biometric_enabled';
   static const _biometricUserIdKey = 'biometric_cred_user_id';
   static const _biometricPasswordKey = 'biometric_cred_password';
@@ -110,24 +112,52 @@ class TokenStorage {
         }
       });
 
+  /// Saves the session tokens. [sessionOnly] marks a login made with
+  /// "Remember Me" off: the tokens are still stored (the API client reads them
+  /// from here) but are discarded on the next cold start. Omit it on token
+  /// refresh to keep the existing mark.
   Future<void> saveSession({
     required String accessToken,
     required String refreshToken,
     required String userId,
+    bool? sessionOnly,
   }) {
     return _synchronized(() async {
       // Sequential writes — never run them in parallel on Android.
       await _storage.write(key: _accessTokenKey, value: accessToken);
       await _storage.write(key: _refreshTokenKey, value: refreshToken);
       await _storage.write(key: _userIdKey, value: userId);
+      if (sessionOnly != null) {
+        await _storage.write(
+          key: _sessionOnlyKey,
+          value: sessionOnly ? 'true' : 'false',
+        );
+      }
     });
   }
+
+  /// The user's last "Remember Me" choice on the login form. A preference,
+  /// not session data, so it survives [clear] / sign-out. Defaults to true.
+  Future<bool> get rememberMe async =>
+      (await _read(_rememberMeKey)) != 'false';
+
+  Future<void> setRememberMe(bool value) => _synchronized(() async {
+        await _storage.write(
+          key: _rememberMeKey,
+          value: value ? 'true' : 'false',
+        );
+      });
+
+  /// Whether the stored session came from a "Remember Me" off login.
+  Future<bool> get isSessionOnly async =>
+      (await _read(_sessionOnlyKey)) == 'true';
 
   Future<void> clear() {
     return _synchronized(() async {
       await _storage.delete(key: _accessTokenKey);
       await _storage.delete(key: _refreshTokenKey);
       await _storage.delete(key: _userIdKey);
+      await _storage.delete(key: _sessionOnlyKey);
     });
   }
 }

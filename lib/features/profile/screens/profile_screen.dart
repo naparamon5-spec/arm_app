@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/di/app_dependencies.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../services/biometric_service.dart';
 import '../../../shared/navigation/app_router.dart';
 import '../../../shared/widgets/app_bar_widget.dart';
@@ -461,6 +462,79 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile>
     );
   }
 
+  /// Asks for the account password and checks it against the server. Returns
+  /// the verified password, or null if cancelled / wrong (already reported).
+  Future<String?> _confirmPassword(String userId) async {
+    final controller = TextEditingController();
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        var obscure = true;
+        return StatefulBuilder(
+          builder: (ctx, setLocal) => AlertDialog(
+            title: Text('Enable $_label login'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Enter the password for $userId once to turn on $_label '
+                  "login. You won't need to type it again.",
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  obscureText: obscure,
+                  autofocus: true,
+                  onSubmitted: (v) => Navigator.of(ctx).pop(v),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    suffixIcon: IconButton(
+                      icon: Icon(obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined),
+                      onPressed: () => setLocal(() => obscure = !obscure),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(controller.text),
+                child: const Text('Continue'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    controller.dispose();
+    if (entered == null || entered.isEmpty) return null;
+
+    try {
+      await AppDependencies.instance.authApi
+          .login(userId: userId, password: entered);
+      return entered;
+    } on ApiException catch (e) {
+      final rejected = e.statusCode == 400 ||
+          e.statusCode == 401 ||
+          e.statusCode == 403;
+      _snack(rejected
+          ? 'Incorrect password. $_label login was not enabled.'
+          : e.message);
+      return null;
+    } catch (_) {
+      _snack("Couldn't verify your password. Check your connection and try "
+          'again.');
+      return null;
+    }
+  }
+
   Future<void> _onToggle(bool value) async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -470,24 +544,29 @@ class _BiometricToggleTileState extends State<_BiometricToggleTile>
           await _showSetupLockDialog();
           return;
         }
-        // We store the password entered at login so biometric login can sign in
-        // again later (even after sign-out). It's only in memory this session.
-        final userId = _session.lastUserId;
-        final password = _session.lastPassword;
+        // Biometric login replays the password, so we need it. Use the one
+        // entered at login this session; if the app was relaunched since (so
+        // it's no longer in memory), ask for it once and verify it.
+        var userId = _session.lastUserId;
+        var password = _session.lastPassword;
         if (userId == null ||
             userId.isEmpty ||
             password == null ||
             password.isEmpty) {
-          _snack(
-            'Please sign out and sign in again, then enable $_label login.',
-          );
-          return;
+          userId = await _tokenStorage.userId;
+          if (userId == null || userId.isEmpty) {
+            _snack('Please sign in again, then enable $_label login.');
+            return;
+          }
+          password = await _confirmPassword(userId);
+          if (password == null) return;
         }
-        final ok = await _biometric.authenticate(
+        final result = await _biometric.authenticate(
           reason: 'Confirm to enable $_label login',
         );
-        if (!ok) {
-          _snack('Authentication cancelled. $_label login not enabled.');
+        if (!result.success) {
+          _snack(result.message ??
+              'Authentication cancelled. $_label login not enabled.');
           return;
         }
         await _tokenStorage.setBiometricCredentials(

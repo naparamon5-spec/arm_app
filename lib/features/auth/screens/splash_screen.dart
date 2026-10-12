@@ -35,11 +35,11 @@ class _SplashScreenState extends State<SplashScreen> {
     final biometric = deps.biometricService;
     final enabled = await biometric.isEnabled();
     if (enabled && await biometric.canAuthenticate()) {
-      final ok = await biometric.authenticate(
+      final result = await biometric.authenticate(
         reason: 'Unlock ARM to continue',
       );
       if (!mounted) return;
-      _go(ok ? AppRouter.dashboard : AppRouter.login);
+      _go(result.success ? AppRouter.dashboard : AppRouter.login);
       return;
     }
 

@@ -9,10 +9,14 @@ class AuthController extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  int? _lastErrorStatus;
   bool _rememberDevice = true;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
+  /// HTTP status of the last failed login, if any (null for network errors).
+  int? get lastErrorStatus => _lastErrorStatus;
   bool get rememberDevice => _rememberDevice;
 
   void setRememberDevice(bool value) {
@@ -28,6 +32,7 @@ class AuthController extends ChangeNotifier {
   }) async {
     _isLoading = true;
     _errorMessage = null;
+    _lastErrorStatus = null;
     _session.setRememberDevice(_rememberDevice);
     notifyListeners();
 
@@ -36,6 +41,7 @@ class AuthController extends ChangeNotifier {
       onSuccess();
     } on ApiException catch (e) {
       _errorMessage = e.message;
+      _lastErrorStatus = e.statusCode;
     } catch (_) {
       _errorMessage = 'Login failed. Please check your credentials.';
     } finally {

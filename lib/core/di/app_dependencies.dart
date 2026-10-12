@@ -56,6 +56,6 @@ class AppDependencies {
         (route) => false,
       );
     };
-    return sessionService.restoreSession();
+    return sessionService.restoreOnLaunch();
   }
 }
