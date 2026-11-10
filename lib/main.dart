@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:arm_app/services/fresh_install_reset.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -11,6 +12,9 @@ import 'shared/controllers/main_tab_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Before anything reads secure storage: wipe what a previous install left
+  // in the iOS Keychain.
+  await FreshInstallReset.run();
   await AppDependencies.instance.initialize();
 
   // Post-update sign-out: if the installed app version changed since the last
